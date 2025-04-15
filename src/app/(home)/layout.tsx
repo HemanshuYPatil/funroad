@@ -1,19 +1,23 @@
+import { Footer } from "./footer";
 import { Navbar } from "./navbar";
 
-// LayoutProps - Props accepted by the layout component
+// LayoutProps - Props accepted by the Layout component
 interface LayoutProps {
-  children: React.ReactNode; // The main page content to be rendered within the layout
+  children: React.ReactNode; // Main content to be rendered within the layout
 }
 
-// Layout - Defines the layout for the (home) segment of the app
+// Layout - Defines the page structure with Navbar, content area, and Footer
 const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Persistent Navbar displayed at the top of every page */}
+      {/* Top navigation bar (persistent across pages) */}
       <Navbar />
 
-      {/* Render the main content passed from the specific route */}
-      {children}
+      {/* Main content area (dynamic page content) */}
+      <div className="flex-1 bg-[#F4F4F0]">{children}</div>
+
+      {/* Bottom footer (static across pages) */}
+      <Footer />
     </div>
   );
 };

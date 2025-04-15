@@ -8,18 +8,20 @@ import {
 import Link from "next/link";
 import React from "react";
 
+// NavbarItem - Shape of each navigation item
 interface NavbarItem {
   href: string;
   children: React.ReactNode;
 }
 
-// NavbarItemProps - Props accepted by the NavbarItem component
+// NavbarSidebarProps - Props accepted by the NavbarSidebar component
 interface NavbarSidebarProps {
-  items: NavbarItem[]; // Navigation destination
-  open: boolean; // Button text or element
-  onOpenChange: (open: boolean) => void; // Whether this item matches the current path
+  items: NavbarItem[]; // Navigation links to render in the sidebar
+  open: boolean; // Whether the sidebar is open
+  onOpenChange: (open: boolean) => void; // Handler to update open state
 }
 
+// NavbarSidebar - Sidebar menu component for mobile navigation
 export const NavbarSidebar = ({
   items,
   open,
@@ -28,9 +30,12 @@ export const NavbarSidebar = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="p-0 transition-none">
+        {/* Sidebar Header */}
         <SheetHeader className="p-4 border-b">
           <SheetTitle>Menu</SheetTitle>
         </SheetHeader>
+
+        {/* Navigation Links */}
         <ScrollArea className="flex flex-col overflow-y-auto h-full pb-2">
           {items.map((item) => (
             <Link
@@ -43,6 +48,8 @@ export const NavbarSidebar = ({
             </Link>
           ))}
         </ScrollArea>
+
+        {/* Auth Buttons */}
         <div className="border-t">
           <Link
             onClick={() => onOpenChange(false)}

@@ -50,7 +50,7 @@ const navbarItems = [
 // Navbar - Main navigation bar for the application
 export const Navbar = () => {
   const pathname = usePathname(); // Get current path to highlight the active nav item
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for mobile sidebar toggle
 
   return (
     <nav className="h-20 flex items-center justify-between border-b bg-white font-medium">
@@ -61,13 +61,14 @@ export const Navbar = () => {
         </span>
       </Link>
 
+      {/* Sidebar (Mobile) */}
       <NavbarSidebar
         items={navbarItems}
         open={isSidebarOpen}
         onOpenChange={setIsSidebarOpen}
       />
 
-      {/* Navigation Links */}
+      {/* Navigation Links (Desktop) */}
       <div className="hidden lg:flex items-center gap-4">
         {navbarItems.map((item) => (
           <NavbarItem
@@ -80,7 +81,7 @@ export const Navbar = () => {
         ))}
       </div>
 
-      {/* Auth buttons */}
+      {/* Auth Buttons (Desktop only) */}
       <div className="hidden lg:flex h-full">
         {/* Login button */}
 
