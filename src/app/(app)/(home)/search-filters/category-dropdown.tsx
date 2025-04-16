@@ -50,7 +50,9 @@ export const CategoryDropdown = ({
           variant="elevated"
           className={cn(
             "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg:white hover:border-primary text-black",
-            isActive && !isNavigationHovered && "bg-white border-primary" // Highlight active button when not hovered
+            isActive && !isNavigationHovered && "bg-white border-primary", // Highlight active button when not hovered
+            isOpen &&
+              "bg-white border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-x-[4px] -translate-y-[4px] transition-all" // Stay the hover shadow and offset when dropdown is open
           )}
         >
           {category.name} {/* Display the category name on the button */}
