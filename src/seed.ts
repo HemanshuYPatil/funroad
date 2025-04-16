@@ -169,6 +169,11 @@ const seed = async () => {
   }
 };
 
-await seed(); // Run the seed function
-
-process.exit(0); // Exit the process after seeding
+try {
+  await seed(); // Run the seed function to populate the database
+  console.log("Seeding completed successfully"); // Log success message
+  process.exit(0); // Exit process with success code
+} catch (error) {
+  console.log("Error during seeding", error); // Log the error that occurred during seeding
+  process.exit(1); // Exit process with failure code
+}
