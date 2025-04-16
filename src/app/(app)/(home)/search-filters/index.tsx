@@ -1,3 +1,4 @@
+import { Categories } from "./categories";
 import { SearchInput } from "./search-input";
 
 // SearchFiltersProps - Props accepted by the SearchFilters component
@@ -12,8 +13,8 @@ export const SearchFilters = ({ data }: SearchFiltersProps) => {
       {/* Search bar input field */}
       <SearchInput />
 
-      {/* Temporary JSON preview of the passed-in data (for debugging/development) */}
-      {JSON.stringify(data, null, 2)}
+      {/* Categories filter section */}
+      <Categories data={data} />
     </div>
   );
 };
