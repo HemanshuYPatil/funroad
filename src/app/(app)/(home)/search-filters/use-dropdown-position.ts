@@ -13,7 +13,7 @@ export const useDropdownPosition = (
 
     // Initial left and top positions based on the trigger element
     let left = rect.left + window.scrollX;
-    const top = rect.bottom + window.screenY;
+    const top = rect.bottom + window.scrollY;
 
     // Adjust left position if dropdown overflows the viewport
     if (left + dropdownWidth > window.innerWidth) {
