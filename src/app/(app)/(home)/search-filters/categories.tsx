@@ -1,9 +1,9 @@
-import { Category } from "@/payload-types";
+import { CustomCategory } from "../types";
 import { CategoryDropdown } from "./category-dropdown";
 
 // CategoriesProps - Props accepted by the Categories component
 interface CategoriesProps {
-  data: any; // Data used for rendering filter options (e.g., top-level categories)
+  data: CustomCategory[]; // Array of top-level categories to render as filter dropdowns
 }
 
 // Categories - Renders a list of category dropdown buttons for filtering
@@ -12,7 +12,7 @@ export const Categories = ({ data }: CategoriesProps) => {
     <div className="relative w-full">
       <div className="flex flex-nowrap items-center">
         {/* Loop through each category and render a CategoryDropdown */}
-        {data.map((category: Category) => (
+        {data.map((category) => (
           <div key={category.id}>
             <CategoryDropdown
               category={category} // The individual category object

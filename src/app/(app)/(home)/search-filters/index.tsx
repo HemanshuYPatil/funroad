@@ -1,9 +1,10 @@
+import { CustomCategory } from "../types";
 import { Categories } from "./categories";
 import { SearchInput } from "./search-input";
 
 // SearchFiltersProps - Props accepted by the SearchFilters component
 interface SearchFiltersProps {
-  data: any; // Data used for rendering filter options (e.g., categories, tags, etc.)
+  data: CustomCategory[]; // Category data used to populate the filter section
 }
 
 // SearchFilters - Component that renders a search input and filter data section

@@ -4,6 +4,7 @@ import { getPayload } from "payload";
 import { Footer } from "./footer";
 import { Navbar } from "./navbar";
 import { SearchFilters } from "./search-filters";
+import { CustomCategory } from "./types";
 
 // LayoutProps - Props accepted by the Layout component
 interface LayoutProps {
@@ -30,7 +31,7 @@ const Layout = async ({ children }: LayoutProps) => {
   });
 
   // Format the data to flatten subcategories and remove nested sub-subcategories
-  const formattedData = data.docs.map((doc) => ({
+  const formattedData: CustomCategory[] = data.docs.map((doc) => ({
     ...doc,
     subcategories: (doc.subcategories?.docs ?? []).map((doc) => ({
       ...(doc as Category), // Cast to Category since depth: 1 ensures proper typing
