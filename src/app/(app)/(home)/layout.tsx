@@ -28,6 +28,7 @@ const Layout = async ({ children }: LayoutProps) => {
         exists: false,
       },
     },
+    sort: "name",
   });
 
   // Format the data to flatten subcategories and remove nested sub-subcategories
