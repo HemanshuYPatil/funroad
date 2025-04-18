@@ -53,7 +53,7 @@ export const Navbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for mobile sidebar toggle
 
   return (
-    <nav className="h-20 flex items-center justify-between border-b bg-white font-medium">
+    <nav className="h-20 flex justify-between border-b bg-white font-medium">
       {/* Logo/Home Link */}
       <Link href="/" className="pl-6 flex items-center">
         <span className={cn("text-5xl font-semibold", poppins.className)}>
@@ -82,7 +82,7 @@ export const Navbar = () => {
       </div>
 
       {/* Auth Buttons (Desktop only) */}
-      <div className="hidden lg:flex h-full">
+      <div className="hidden lg:flex">
         {/* Login button */}
 
         <Button
