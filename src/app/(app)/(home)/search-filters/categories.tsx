@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ListFilterIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { CustomCategory } from "../types";
+import { CategoriesSidebar } from "./categories-sidebar";
 import { CategoryDropdown } from "./category-dropdown";
 
 // CategoriesProps - Props accepted by the Categories component
@@ -29,8 +30,8 @@ export const Categories = ({ data }: CategoriesProps) => {
   // Tracks whether any category dropdown is currently hovered
   const [isAnyHovered, setIsAnyHovered] = useState(false);
 
-  // TODO: Placeholder state to potentially toggle sidebar - not used currently
-  const [isSideBarOpen, setIsSideBarOpen] = useState(false);
+  // Controls visibility of the category sidebar on smaller screens
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // TODO: Hardcoded active category (can be replaced with real logic)
   const activeCategory = "all";
@@ -86,6 +87,13 @@ export const Categories = ({ data }: CategoriesProps) => {
 
   return (
     <div className="relative w-full">
+      {/* Categories sidebar */}
+      <CategoriesSidebar
+        open={isSidebarOpen}
+        onOpenChange={setIsSidebarOpen}
+        data={data}
+      />
+
       {/* Hidden measuring container - used only for layout calculations */}
       <div
         ref={measureRef}
@@ -131,6 +139,7 @@ export const Categories = ({ data }: CategoriesProps) => {
                 !isAnyHovered &&
                 "bg-white border-primary" // Style as active if current active category is hidden
             )}
+            onClick={() => setIsSidebarOpen(true)} // Open the category sidebar when "View All" is clicked
           >
             View All
             <ListFilterIcon className="ml-2" />
