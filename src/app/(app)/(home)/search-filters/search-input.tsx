@@ -4,27 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ListFilterIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
-import { CustomCategory } from "../types";
 import { CategoriesSidebar } from "./categories-sidebar";
 
 // SearchInputProps - Props accepted by the SearchInput component
 interface SearchInputProps {
   disabled?: boolean; // Optional flag to disable the input field
-  data: CustomCategory[]; // Category data used for sidebar navigation
 }
 
 // SearchInput - Input field with a search icon and mobile category toggle button
-export const SearchInput = ({ disabled, data }: SearchInputProps) => {
+export const SearchInput = ({ disabled }: SearchInputProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Track sidebar visibility
 
   return (
     <div className="flex items-center gap-2 w-full">
       {/* Sidebar for category filters (mobile only) */}
-      <CategoriesSidebar
-        open={isSidebarOpen}
-        onOpenChange={setIsSidebarOpen}
-        data={data}
-      />
+      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen} />
 
       {/* Search input with leading icon */}
       <div className="relative w-full">

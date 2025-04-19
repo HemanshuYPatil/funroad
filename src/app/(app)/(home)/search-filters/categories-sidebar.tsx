@@ -5,6 +5,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,15 +16,16 @@ import { CustomCategory } from "../types";
 interface CategoriesSidebarProps {
   open: boolean; // Whether the sidebar is currently open
   onOpenChange: (open: boolean) => void; // Callback to toggle sidebar visibility
-  data: CustomCategory[]; // List of root-level categories (each may include subcategories)
 }
 
 // CategoriesSidebar - Displays a sliding sidebar to navigate categories and subcategories
 export const CategoriesSidebar = ({
   open,
   onOpenChange,
-  data,
 }: CategoriesSidebarProps) => {
+  const trpc = useTRPC(); // Access the tRPC client
+  const { data } = useQuery(trpc.categories.getMany.queryOptions()); // Fetch all categories from the API
+
   const router = useRouter();
 
   // State to track current parent category view (null = top-level categories)
