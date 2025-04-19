@@ -28,6 +28,28 @@ export const authRouter = createTRPCRouter({
   register: baseProcedure
     .input(registerSchema) // Validate the input using the register schema
     .mutation(async ({ input, ctx }) => {
+      // Check if a user with the same username already exists
+      const existingData = await ctx.db.find({
+        collection: "users",
+        limit: 1,
+        where: {
+          username: {
+            equals: input.username,
+          },
+        },
+      });
+
+      // Extract the first matching user from the result set (if any)
+      const existingUser = existingData.docs[0];
+
+      // If the username is already taken, throw an error
+      if (existingUser) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Username already taken",
+        });
+      }
+
       // Create a new user record in the Payload CMS database
       await ctx.db.create({
         collection: "users",
