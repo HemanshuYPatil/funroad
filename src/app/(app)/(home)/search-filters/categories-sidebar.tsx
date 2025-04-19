@@ -5,12 +5,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { CategoriesGetManyOutput } from "@/modules/categories/types";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CustomCategory } from "../types";
 
 // CategoriesSidebarProps - Props accepted by the CategoriesSidebar component
 interface CategoriesSidebarProps {
@@ -29,13 +29,13 @@ export const CategoriesSidebar = ({
   const router = useRouter();
 
   // State to track current parent category view (null = top-level categories)
-  const [parentCategories, setParentCategories] = useState<
-    CustomCategory[] | null
-  >(null);
+  const [parentCategories, setParentCategories] =
+    useState<CategoriesGetManyOutput | null>(null);
 
   // State to track the currently selected category (used for back navigation and styling)
-  const [selectedCategory, setSelectedCategory] =
-    useState<CustomCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<
+    CategoriesGetManyOutput[1] | null
+  >(null);
 
   // Use subcategories if navigating into a parent category, else use top-level data
   const currentCategories = parentCategories ?? data ?? [];
@@ -48,10 +48,10 @@ export const CategoriesSidebar = ({
   };
 
   // Handle a category click (navigate into subcategories or redirect to category page)
-  const handleCategoryClick = (category: CustomCategory) => {
+  const handleCategoryClick = (category: CategoriesGetManyOutput[1]) => {
     if (category.subcategories && category.subcategories.length > 0) {
       // If the category has subcategories, show them
-      setParentCategories(category.subcategories as CustomCategory[]);
+      setParentCategories(category.subcategories as CategoriesGetManyOutput);
       setSelectedCategory(category);
     } else {
       // If leaf category, construct redirect path based on slug

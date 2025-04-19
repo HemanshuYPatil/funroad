@@ -2,15 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CategoriesGetManyOutput } from "@/modules/categories/types";
 import { ListFilterIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { CustomCategory } from "../types";
 import { CategoriesSidebar } from "./categories-sidebar";
 import { CategoryDropdown } from "./category-dropdown";
 
 // CategoriesProps - Props accepted by the Categories component
 interface CategoriesProps {
-  data: CustomCategory[]; // Array of top-level categories to render as filter dropdowns
+  data: CategoriesGetManyOutput; // Array of top-level categories to render as filter dropdowns
 }
 
 // Categories - Renders a list of category dropdown buttons with responsive visibility
