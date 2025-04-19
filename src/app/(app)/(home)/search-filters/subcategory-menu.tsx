@@ -45,7 +45,7 @@ export const SubcategoryMenu = ({
           {category.subcategories?.map((subcategory: Category) => (
             <Link
               key={subcategory.slug}
-              href={"/"} // TODO: Replace with actual link to subcategory page
+              href={`/${category.slug}/${subcategory.slug}`} // Link to the subcategory page based on parent and child slug
               className="w-full text-left p-4 hover:bg-black hover:text-white flex justify-between items-center underline font-medium"
             >
               {subcategory.name}
