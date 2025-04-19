@@ -1,8 +1,8 @@
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { cookies as getCookies, headers as getHeaders } from "next/headers";
-import z from "zod";
 import { AUTH_COOKIE } from "../constants";
+import { loginSchema, registerSchema } from "../schemas";
 
 // authRouter - Defines auth-related API procedures
 export const authRouter = createTRPCRouter({
@@ -26,25 +26,7 @@ export const authRouter = createTRPCRouter({
 
   // register - Creates a new user in the Payload CMS "users" collection
   register: baseProcedure
-    .input(
-      z.object({
-        email: z.string().email(), // Validates email format
-        password: z.string(), // Accepts any non-empty string for password
-        username: z
-          .string()
-          .min(3, "Username must be at least 3 characters") // Enforce minimum length of 3
-          .max(63, "Username must be less than 63 characters") // Enforce maximum length of 63
-          .regex(
-            /^[a-z0-9][a-z0-9-]*[a-z0-9]$/, // Must start/end with letter or number; hyphens allowed in between
-            "Username can only contain lowercase letters, numbers and hyphens. It must start and end with a letter or number"
-          )
-          .refine(
-            (val) => !val.includes("--"), // Disallow consecutive hyphens
-            "Username cannot contain consecutive hyphens"
-          )
-          .transform((val) => val.toLowerCase()), // Normalize to lowercase
-      })
-    )
+    .input(registerSchema) // Validate the input using the register schema
     .mutation(async ({ input, ctx }) => {
       // Create a new user record in the Payload CMS database
       await ctx.db.create({
@@ -91,12 +73,7 @@ export const authRouter = createTRPCRouter({
 
   // login - Authenticates a user and sets an auth cookie using Payload CMS
   login: baseProcedure
-    .input(
-      z.object({
-        email: z.string().email(), // Validates email format
-        password: z.string(), // Accepts any non-empty string for password
-      })
-    )
+    .input(loginSchema) // Validate the input using the login schema
     .mutation(async ({ input, ctx }) => {
       // Attempt to log in using Payload's login method
       const data = await ctx.db.login({
