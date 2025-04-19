@@ -2,14 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Category } from "@/payload-types";
+import Link from "next/link";
 import { useRef, useState } from "react";
+import { CustomCategory } from "../types";
 import { SubcategoryMenu } from "./subcategory-menu";
 import { useDropdownPosition } from "./use-dropdown-position";
 
 // CategoryDropdownProps - Props accepted by the CategoryDropdown component
 interface CategoryDropdownProps {
-  category: Category; // The category object to render
+  category: CustomCategory; // The category object to render
   isActive?: boolean; // Indicates if the current category is active
   isNavigationHovered: boolean; // Indicates if the navigation is currently hovered
 }
@@ -49,11 +50,16 @@ export const CategoryDropdown = ({
         <Button
           variant="elevated"
           className={cn(
-            "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg:white hover:border-primary text-black",
-            isActive && !isNavigationHovered && "bg-white border-primary" // Highlight active button when not hovered
+            "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg-white hover:border-primary text-black",
+            isActive && !isNavigationHovered && "bg-white border-primary", // Highlight active button when not hovered
+            isOpen &&
+              "bg-white border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-x-[4px] -translate-y-[4px] transition-all" // Stay the hover shadow and offset when dropdown is open
           )}
         >
-          {category.name} {/* Display the category name on the button */}
+          {/* // Display the category name as a link to its respective page */}
+          <Link href={`/${category.slug === "all" ? "" : category.slug}`}>
+            {category.name}
+          </Link>
         </Button>
 
         {/* Render a triangle indicator below the button to signal dropdown visibility */}

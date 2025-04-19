@@ -1,9 +1,10 @@
 import { Category } from "@/payload-types";
 import Link from "next/link";
+import { CustomCategory } from "../types";
 
 // SubcategoryMenuProps - Defines the props for the SubcategoryMenu component
 interface SubcategoryMenuProps {
-  category: Category; // The category object containing the subcategories to be displayed
+  category: CustomCategory; // The category object containing the subcategories to be displayed
   isOpen: boolean; // Indicates whether the dropdown menu is open or closed
   position: { top: number; left: number }; // Position where the menu should be rendered (top and left coordinates)
 }
@@ -44,7 +45,7 @@ export const SubcategoryMenu = ({
           {category.subcategories?.map((subcategory: Category) => (
             <Link
               key={subcategory.slug}
-              href={"/"} // TODO: Replace with actual link to subcategory page
+              href={`/${category.slug}/${subcategory.slug}`} // Link to the subcategory page based on parent and child slug
               className="w-full text-left p-4 hover:bg-black hover:text-white flex justify-between items-center underline font-medium"
             >
               {subcategory.name}
