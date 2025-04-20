@@ -4,6 +4,7 @@ import { DEFAULT_BG_COLOR } from "@/modules/home/constants";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { BreadcrumbNavigation } from "./breadcrumb-navigation";
 import { Categories } from "./categories";
 import { SearchInput } from "./search-input";
 
@@ -12,6 +13,7 @@ export const SearchFilters = () => {
   const trpc = useTRPC(); // Access the tRPC client
   const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions()); // Fetch category data with suspense-enabled query
 
+  console.log(data);
   const params = useParams(); // Get dynamic route parameters
   const categoryParam = params.category as string | undefined; // Extract current category from route
   const activeCategory = categoryParam || "all"; // Fallback to "all" if no category is selected
@@ -23,6 +25,17 @@ export const SearchFilters = () => {
 
   // Use category's color as background or fall back to default
   const activeCategoryColor = activeCategoryData?.color || DEFAULT_BG_COLOR;
+
+  // Get active category name or fallback to null
+  const activeCategoryName = activeCategoryData?.name || null;
+
+  const activeSubcategory = params.subcategory as string | undefined; // Extract subcategory slug from params
+
+  // Get subcategory name that matches the active subcategory slug
+  const activeSubcategoryName =
+    activeCategoryData?.subcategories?.find(
+      (subcategory) => subcategory.slug === activeSubcategory
+    )?.name || null;
 
   return (
     <div
@@ -36,6 +49,13 @@ export const SearchFilters = () => {
       <div className="hidden lg:block">
         <Categories data={data} />
       </div>
+
+      {/* Breadcrumb navigation for category and subcategory */}
+      <BreadcrumbNavigation
+        activeCategory={activeCategory}
+        activeCategoryName={activeCategoryName}
+        activeSubcategoryName={activeSubcategoryName}
+      />
     </div>
   );
 };
