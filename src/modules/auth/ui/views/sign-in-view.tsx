@@ -44,7 +44,7 @@ export const SignInView = () => {
       },
       onSuccess: async () => {
         // Invalidate the cached session query so that it refetches fresh auth state
-        queryClient.invalidateQueries(trpc.auth.session.queryFilter());
+        await queryClient.invalidateQueries(trpc.auth.session.queryFilter());
         router.push("/"); // Redirect to homepage on success
       },
     })
