@@ -12,3 +12,7 @@ export const trpc = createTRPCOptionsProxy({
   router: appRouter,
   queryClient: getQueryClient,
 });
+
+// caller - Server-side tRPC caller (bypasses HTTP layer)
+// Allows calling procedures directly from the server using the same context
+export const caller = appRouter.createCaller(createTRPCContext);
