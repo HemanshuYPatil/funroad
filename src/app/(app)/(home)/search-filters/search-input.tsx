@@ -2,7 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ListFilterIcon, SearchIcon } from "lucide-react";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
+import { BookmarkCheckIcon, ListFilterIcon, SearchIcon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { CategoriesSidebar } from "./categories-sidebar";
 
@@ -14,6 +17,9 @@ interface SearchInputProps {
 // SearchInput - Input field with a search icon and mobile category toggle button
 export const SearchInput = ({ disabled }: SearchInputProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Track sidebar visibility
+
+  const trpc = useTRPC(); // Access the tRPC client
+  const session = useQuery(trpc.auth.session.queryOptions()); // Fetch the current session from the server using tRPC
 
   return (
     <div className="flex items-center gap-2 w-full">
@@ -39,7 +45,15 @@ export const SearchInput = ({ disabled }: SearchInputProps) => {
         <ListFilterIcon />
       </Button>
 
-      {/* TODO: Add library button */}
+      {/* Library button */}
+      {session.data?.user && (
+        <Button asChild variant="elevated">
+          <Link href="/library">
+            <BookmarkCheckIcon />
+            Library
+          </Link>
+        </Button>
+      )}
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { cookies as getCookies, headers as getHeaders } from "next/headers";
-import { AUTH_COOKIE } from "../constants";
+import { headers as getHeaders } from "next/headers";
 import { loginSchema, registerSchema } from "../schemas";
+import { generateAuthCookie } from "../utils";
 
 // authRouter - Defines auth-related API procedures
 export const authRouter = createTRPCRouter({
@@ -13,15 +13,6 @@ export const authRouter = createTRPCRouter({
     const session = await ctx.db.auth({ headers }); // Payload CMS auth using headers
 
     return session; // Returns user and permissions from Payload
-  }),
-
-  // logout - Logs the user out by deleting the authentication cookie, invalidating the session
-  logout: baseProcedure.mutation(async () => {
-    const cookies = await getCookies(); // Retrieve cookies from the request
-
-    cookies.delete(AUTH_COOKIE); // Delete the authentication cookie by its name (AUTH_COOKIE)
-
-    // No return value needed; just clearing the auth cookie to log out the user
   }),
 
   // register - Creates a new user in the Payload CMS "users" collection
@@ -77,17 +68,10 @@ export const authRouter = createTRPCRouter({
         });
       }
 
-      // Set auth cookie with the returned token
-      const cookies = await getCookies(); // Get the cookies from the request
-
-      cookies.set({
-        name: AUTH_COOKIE, // The name of the cookie storing the authentication token
-        value: data.token, // The authentication token received after successful login
-        httpOnly: true, // Prevents client-side JavaScript from accessing the cookie (security measure)
-        path: "/", // Cookie will be available across the entire site (accessible from all routes)
-        // TODO: Ensure cross-domain cookie sharing if needed (uncomment to enable in future)
-        // sameSite: "none" // Enable cross-domain cookie sharing (requires secure connection)
-        // domain: "" // Specify a domain for cookie if cross-domain is required (optional)
+      // Generate and store the auth cookie in the user's browser
+      await generateAuthCookie({
+        prefix: ctx.db.config.cookiePrefix, // Prefix helps identify the token source
+        value: data.token, // The JWT or session token returned from the login response
       });
 
       return data; // Return session data with user info and the authentication token
@@ -114,17 +98,10 @@ export const authRouter = createTRPCRouter({
         });
       }
 
-      // Set auth cookie with returned token
-      const cookies = await getCookies();
-
-      cookies.set({
-        name: AUTH_COOKIE, // The name of the cookie storing the authentication token
-        value: data.token, // The token value received after successful login
-        httpOnly: true, // Prevents client-side JavaScript access to the cookie
-        path: "/", // Cookie will be available across the entire site
-        // TODO: Ensure cross-domain cookie sharing if needed (uncomment to enable in future)
-        // sameSite: "none" // Enable for cross-domain cookie sharing, needs to be secure
-        // domain: "" // Specify a domain for cookie if cross-domain is required
+      // Generate and store the auth cookie in the user's browser
+      await generateAuthCookie({
+        prefix: ctx.db.config.cookiePrefix, // Prefix helps identify the token source
+        value: data.token, // The JWT or session token returned from the login response
       });
 
       return data; // Return session data with user info and token

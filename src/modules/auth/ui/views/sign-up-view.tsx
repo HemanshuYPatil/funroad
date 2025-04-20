@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Poppins } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,6 +35,7 @@ export const SignUpView = () => {
 
   // Initialize tRPC client
   const trpc = useTRPC();
+  const queryClient = useQueryClient(); // Get the global React Query client instance
 
   // Mutation for registering a new user
   const register = useMutation(
@@ -42,7 +43,9 @@ export const SignUpView = () => {
       onError: (error) => {
         toast.error(error.message); // Show error message on failure
       },
-      onSuccess: () => {
+      onSuccess: async () => {
+        // Invalidate the cached session query so that it refetches fresh auth state
+        await queryClient.invalidateQueries(trpc.auth.session.queryFilter());
         router.push("/"); // Redirect to homepage on success
       },
     })
