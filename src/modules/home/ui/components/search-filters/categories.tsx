@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CategoriesGetManyOutput } from "@/modules/categories/types";
 import { ListFilterIcon } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CategoriesSidebar } from "./categories-sidebar";
 import { CategoryDropdown } from "./category-dropdown";
@@ -15,26 +16,27 @@ interface CategoriesProps {
 
 // Categories - Renders a list of category dropdown buttons with responsive visibility
 export const Categories = ({ data }: CategoriesProps) => {
+  // Access dynamic route parameters from the URL
+  const params = useParams();
+
   // Ref to the visible container that holds the dropdowns and "View All" button
   const containerRef = useRef<HTMLDivElement>(null);
-
   // Ref to a hidden container used to measure total width of all dropdowns
   const measureRef = useRef<HTMLDivElement>(null);
-
   // Ref to the "View All" button used in width calculations
   const viewAllRef = useRef<HTMLDivElement>(null);
 
   // Number of categories to show based on available width
   const [visibleCount, setVisibleCount] = useState(data.length);
-
   // Tracks whether any category dropdown is currently hovered
   const [isAnyHovered, setIsAnyHovered] = useState(false);
-
   // Controls visibility of the category sidebar on smaller screens
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // TODO: Hardcoded active category (can be replaced with real logic)
-  const activeCategory = "all";
+  // Extract the 'category' parameter from the URL params
+  const categoryParam = params.category as string | undefined;
+  // Use the extracted category if present, otherwise default to "all"
+  const activeCategory = categoryParam || "all";
 
   // Find the index of the active category in the data array
   const activeCategoryIndex = data.findIndex(
@@ -129,6 +131,7 @@ export const Categories = ({ data }: CategoriesProps) => {
         {/* View All button - always visible and positioned at the end */}
         <div ref={viewAllRef} className="shrink-0">
           <Button
+            variant={"elevated"}
             className={cn(
               "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg-white hover:border-primary text-black",
               isActiveCategoryHidden &&

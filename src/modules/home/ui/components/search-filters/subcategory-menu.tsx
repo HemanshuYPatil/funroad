@@ -1,4 +1,5 @@
 import { CategoriesGetManyOutput } from "@/modules/categories/types";
+import { DEFAULT_BG_COLOR } from "@/modules/home/constants";
 import { Category } from "@/payload-types";
 import Link from "next/link";
 
@@ -25,7 +26,7 @@ export const SubcategoryMenu = ({
   }
 
   // Use category color if provided, fallback to light gray
-  const backgroundColor = category.color || "#F5F5F5";
+  const backgroundColor = category.color || DEFAULT_BG_COLOR;
 
   return (
     <div
