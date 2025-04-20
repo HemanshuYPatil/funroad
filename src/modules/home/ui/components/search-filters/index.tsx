@@ -13,7 +13,6 @@ export const SearchFilters = () => {
   const trpc = useTRPC(); // Access the tRPC client
   const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions()); // Fetch category data with suspense-enabled query
 
-  console.log(data);
   const params = useParams(); // Get dynamic route parameters
   const categoryParam = params.category as string | undefined; // Extract current category from route
   const activeCategory = categoryParam || "all"; // Fallback to "all" if no category is selected
