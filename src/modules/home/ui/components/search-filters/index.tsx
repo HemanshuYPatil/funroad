@@ -1,7 +1,9 @@
 "use client"; // Enables client-side rendering
 
+import { DEFAULT_BG_COLOR } from "@/modules/home/constants";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { Categories } from "./categories";
 import { SearchInput } from "./search-input";
 
@@ -10,10 +12,22 @@ export const SearchFilters = () => {
   const trpc = useTRPC(); // Access the tRPC client
   const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions()); // Fetch category data with suspense-enabled query
 
+  const params = useParams(); // Get dynamic route parameters
+  const categoryParam = params.category as string | undefined; // Extract current category from route
+  const activeCategory = categoryParam || "all"; // Fallback to "all" if no category is selected
+
+  // Find the full category object for the active category
+  const activeCategoryData = data.find(
+    (category) => category.slug === activeCategory
+  );
+
+  // Use category's color as background or fall back to default
+  const activeCategoryColor = activeCategoryData?.color || DEFAULT_BG_COLOR;
+
   return (
     <div
       className="px-4 lg:px-12 py-8 border-b flex flex-col gap-4 w-full"
-      style={{ backgroundColor: "#F5F5F5" }}
+      style={{ backgroundColor: activeCategoryColor }}
     >
       {/* Search bar input field */}
       <SearchInput />
@@ -31,7 +45,7 @@ export const SearchFiltersSkeleton = () => {
   return (
     <div
       className="px-4 lg:px-12 py-8 border-b flex flex-col gap-4 w-full"
-      style={{ backgroundColor: "#F5F5F5" }}
+      style={{ backgroundColor: DEFAULT_BG_COLOR }}
     >
       {/* Disabled search input as placeholder */}
       <SearchInput disabled />
