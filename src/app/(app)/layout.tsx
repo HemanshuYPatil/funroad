@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import { TRPCReactProvider } from "@/trpc/client";
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
@@ -23,8 +24,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${dmSans.className} antialiased`}>
-        {/* Render all page content within the global font and smoothing settings */}
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        {/* Wrap all content in tRPC provider for API access */}
+        <TRPCReactProvider>
+          {children}
+          {/* Global toast notifications */}
+          <Toaster />
+        </TRPCReactProvider>
       </body>
     </html>
   );

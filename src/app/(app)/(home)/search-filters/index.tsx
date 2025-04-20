@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Enables client-side rendering
 
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
