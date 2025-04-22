@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TRPCReactProvider } from "@/trpc/client";
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
 // Load DM Sans font with Latin subset
@@ -24,12 +25,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${dmSans.className} antialiased`}>
-        {/* Wrap all content in tRPC provider for API access */}
-        <TRPCReactProvider>
-          {children}
-          {/* Global toast notifications */}
-          <Toaster />
-        </TRPCReactProvider>
+        {/* Enables URL state syncing for filters and other query params */}
+        <NuqsAdapter>
+          {/* Wrap all content in tRPC provider for API access */}
+          <TRPCReactProvider>
+            {children}
+            {/* Global toast notifications */}
+            <Toaster />
+          </TRPCReactProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

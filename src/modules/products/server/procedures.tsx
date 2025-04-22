@@ -9,12 +9,35 @@ export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
     .input(
       z.object({
-        category: z.string().nullable().optional(), // Accepts an optional category slug to filter products
+        category: z.string().nullable().optional(), // Optional category or subcategory slug
+        minPrice: z.string().nullable().optional(), // Optional minimum price filter
+        maxPrice: z.string().nullable().optional(), // Optional maximum price filter
       })
     )
     .query(async ({ ctx, input }) => {
-      // Initialize empty filter object for Payload query
+      // Initialize an empty 'where' filter for the product query
       const where: Where = {};
+
+      // Initialize price filter object if any price filters are provided
+      if (input.minPrice || input.maxPrice) {
+        where.price = {};
+      }
+
+      // Add minimum price filter if provided
+      if (input.minPrice) {
+        where.price = {
+          ...where.price,
+          greater_than_equal: input.minPrice,
+        };
+      }
+
+      // Add maximum price filter if provided
+      if (input.maxPrice) {
+        where.price = {
+          ...where.price,
+          less_than_equal: input.maxPrice,
+        };
+      }
 
       // If a category slug is provided in the input
       if (input.category) {
@@ -45,32 +68,30 @@ export const productsRouter = createTRPCRouter({
         // Extract the parent category from the formatted result
         const parentCategory = formattedData[0];
 
-        // Check if parentCategory and subcategories are defined
-        if (parentCategory && parentCategory.subcategories) {
+        // If a valid category was found
+        if (parentCategory) {
           // Push all subcategory slugs into the array
           subcategoriesSlugs.push(
             ...parentCategory.subcategories.map(
               (subcategory) => subcategory.slug
             )
           );
-          // Also include the parent category slug itself
-          subcategoriesSlugs.push(parentCategory.slug);
-        }
 
-        // Apply a filter to the product query:
-        where["category.slug"] = {
-          in: subcategoriesSlugs, // Use the array of slugs
-        };
+          // Add category and subcategory slugs to the product query
+          where["category.slug"] = {
+            in: [parentCategory.slug, ...subcategoriesSlugs],
+          };
+        }
       }
 
-      // Fetch all matching products from the "products" collection
+      // Query the products collection using the constructed filter
       const data = await ctx.db.find({
         collection: "products", // Query the products collection
         depth: 1, // Include relational fields (like images, category, etc.)
         where, // Apply the category filter (if any)
       });
 
-      // Return the list of fetched products
+      // Return the final product list
       return data;
     }),
 });
