@@ -1,7 +1,7 @@
-import { Category } from "@/payload-types"; // Import the Category type from Payload
-import { baseProcedure, createTRPCRouter } from "@/trpc/init"; // Import baseProcedure and router initializer
-import { Where } from "payload"; // Import Where type for query filters
-import { z } from "zod"; // Import Zod for input validation
+import { Category } from "@/payload-types";
+import { baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { Where } from "payload";
+import { z } from "zod";
 
 // productsRouter - Defines product-related API procedures
 export const productsRouter = createTRPCRouter({
