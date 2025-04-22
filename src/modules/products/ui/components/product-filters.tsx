@@ -41,6 +41,23 @@ const ProductFilter = ({ title, className, children }: ProductFilterProps) => {
 export const ProductFilters = () => {
   const [filters, setFilters] = useProductFilters(); // Sync filter state with URL query params
 
+  // hasAnyFilters - Checks if any filter has a non-empty or non-null value
+  const hasAnyFilters = Object.entries(filters).some(([, value]) => {
+    if (typeof value === "string") {
+      return value !== "";
+    }
+
+    return value !== null;
+  });
+
+  // onClear - Reset all filter values to empty
+  const onClear = () => {
+    setFilters({
+      minPrice: "",
+      maxPrice: "",
+    });
+  };
+
   // onChange - Update a single filter value by key
   const onChange = (key: keyof typeof filters, value: unknown) => {
     setFilters({ ...filters, [key]: value });
@@ -48,12 +65,18 @@ export const ProductFilters = () => {
 
   return (
     <div className="border rounded-md bg-white">
-      {/* Filters header with clear button (no-op for now) */}
+      {/* Filters header with conditional clear button */}
       <div className="p-4 border-b flex items-center justify-between">
         <p className="font-medium">Filters</p>
-        <button className="underline" onClick={() => {}} type="button">
-          Clear
-        </button>
+        {hasAnyFilters && (
+          <button
+            className="underline cursor-pointer"
+            onClick={onClear}
+            type="button"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Collapsible section for price-related filters */}
