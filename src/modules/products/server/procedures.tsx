@@ -45,22 +45,20 @@ export const productsRouter = createTRPCRouter({
         // Extract the parent category from the formatted result
         const parentCategory = formattedData[0];
 
-        // Check if parentCategory and subcategories are defined
-        if (parentCategory && parentCategory.subcategories) {
+        // If a valid category was found
+        if (parentCategory) {
           // Push all subcategory slugs into the array
           subcategoriesSlugs.push(
             ...parentCategory.subcategories.map(
               (subcategory) => subcategory.slug
             )
           );
-          // Also include the parent category slug itself
-          subcategoriesSlugs.push(parentCategory.slug);
-        }
 
-        // Apply a filter to the product query:
-        where["category.slug"] = {
-          in: subcategoriesSlugs, // Use the array of slugs
-        };
+          // Apply a filter to the product query:
+          where["category.slug"] = {
+            in: [parentCategory.slug, ...subcategoriesSlugs],
+          };
+        }
       }
 
       // Fetch all matching products from the "products" collection
