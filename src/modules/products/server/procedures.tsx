@@ -45,21 +45,21 @@ export const productsRouter = createTRPCRouter({
         // Extract the parent category from the formatted result
         const parentCategory = formattedData[0];
 
-        // If a valid category was found
-        if (parentCategory) {
+        // Check if parentCategory and subcategories are defined
+        if (parentCategory && parentCategory.subcategories) {
           // Push all subcategory slugs into the array
           subcategoriesSlugs.push(
             ...parentCategory.subcategories.map(
               (subcategory) => subcategory.slug
             )
           );
+          // Also include the parent category slug itself
+          subcategoriesSlugs.push(parentCategory.slug);
         }
 
         // Apply a filter to the product query:
-        // If the slug refers to a parent category, it matches the parent and all subcategories
-        // If it's already a subcategory, only its slug will match
         where["category.slug"] = {
-          in: [parentCategory.slug, ...subcategoriesSlugs],
+          in: subcategoriesSlugs, // Use the array of slugs
         };
       }
 
