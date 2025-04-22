@@ -1,0 +1,25 @@
+import type { CollectionConfig } from "payload";
+
+// Tags - Collection configuration for tagging products
+export const Tags: CollectionConfig = {
+  // slug - Used as the API endpoint path (e.g., /api/tags)
+  slug: "tags",
+
+  // fields - Defines the schema/structure of the collection
+  fields: [
+    // name - Display name of the tag (e.g., 'New Arrival', 'Sale')
+    {
+      name: "name", // Field name used internally and in the database
+      type: "text", // Text input field
+      required: true, // Must be provided when creating/editing a tag
+    },
+
+    // products - Relationship to link tags with multiple products
+    {
+      name: "products", // Field name
+      type: "relationship", // Creates a reference to other documents
+      relationTo: "products", // References the 'products' collection
+      hasMany: true, // A tag can be linked to multiple products
+    },
+  ],
+};
