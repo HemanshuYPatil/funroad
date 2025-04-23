@@ -17,6 +17,7 @@ export const Tags: CollectionConfig = {
       name: "name", // Field name used internally and in the database
       type: "text", // Text input field
       required: true, // Must be provided when creating/editing a tag
+      unique: true, // Each tag must have a different name
     },
 
     // products - Relationship to link tags with multiple products

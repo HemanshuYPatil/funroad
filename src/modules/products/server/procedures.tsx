@@ -12,6 +12,7 @@ export const productsRouter = createTRPCRouter({
         category: z.string().nullable().optional(), // Optional category or subcategory slug
         minPrice: z.string().nullable().optional(), // Optional minimum price filter
         maxPrice: z.string().nullable().optional(), // Optional maximum price filter
+        tags: z.array(z.string()).nullable().optional(), // Optional list of tag names for filtering
       })
     )
     .query(async ({ ctx, input }) => {
@@ -82,6 +83,13 @@ export const productsRouter = createTRPCRouter({
             in: [parentCategory.slug, ...subcategoriesSlugs],
           };
         }
+      }
+
+      // Add tag filters if one or more tags are selected
+      if (input.tags && input.tags.length > 0) {
+        where["tags.name"] = {
+          in: input.tags, // Match any product that has one of the selected tag names
+        };
       }
 
       // Query the products collection using the constructed filter

@@ -5,6 +5,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 import { useProductFilters } from "../../hooks/use-product-filters";
 import { PriceFilter } from "./price-filter";
+import { TagsFilter } from "./tags-filter";
 
 // ProductFilterProps - Props for the collapsible ProductFilter section
 interface ProductFilterProps {
@@ -44,17 +45,18 @@ export const ProductFilters = () => {
   // hasAnyFilters - Checks if any filter has a non-empty or non-null value
   const hasAnyFilters = Object.entries(filters).some(([, value]) => {
     if (typeof value === "string") {
-      return value !== "";
+      return value !== ""; // Checks if a string filter has a non-empty value
     }
 
-    return value !== null;
+    return value !== null; // Checks if a non-string filter (like an array) has a non-null value
   });
 
   // onClear - Reset all filter values to empty
   const onClear = () => {
     setFilters({
-      minPrice: "",
-      maxPrice: "",
+      minPrice: "", // Resets the minimum price filter to an empty string
+      maxPrice: "", // Resets the maximum price filter to an empty string
+      tags: [], // Resets the tags filter to an empty array (no selected tags)
     });
   };
 
@@ -80,12 +82,20 @@ export const ProductFilters = () => {
       </div>
 
       {/* Collapsible section for price-related filters */}
-      <ProductFilter title="Price" className="border-b-0">
+      <ProductFilter title="Price">
         <PriceFilter
-          minPrice={filters.minPrice}
-          maxPrice={filters.maxPrice}
-          onMinPriceChange={(value) => onChange("minPrice", value)}
-          onMaxPriceChange={(value) => onChange("maxPrice", value)}
+          minPrice={filters.minPrice} // Current minimum price value from URL query
+          maxPrice={filters.maxPrice} // Current maximum price value from URL query
+          onMinPriceChange={(value) => onChange("minPrice", value)} // Update min price filter
+          onMaxPriceChange={(value) => onChange("maxPrice", value)} // Update max price filter
+        />
+      </ProductFilter>
+
+      {/* Collapsible section for tag-based filters */}
+      <ProductFilter title="Tags" className="border-b-0">
+        <TagsFilter
+          value={filters.tags} // Current list of selected tags
+          onChange={(value) => onChange("tags", value)} // Update selected tags
         />
       </ProductFilter>
     </div>

@@ -1,13 +1,21 @@
 import { useQueryStates } from "nuqs";
-import { createLoader, parseAsString } from "nuqs/server";
+import { createLoader, parseAsArrayOf, parseAsString } from "nuqs/server";
 
-// params - Configuration for parsing minPrice and maxPrice from the URL query string
+// params - Configuration for parsing and validating query string parameters
 export const params = {
+  // minPrice - Represents the minimum price filter
   minPrice: parseAsString.withOptions({
     clearOnDefault: true, // Clears the query param if it matches the default value
   }),
+
+  // maxPrice - Represents the maximum price filter
   maxPrice: parseAsString.withOptions({
     clearOnDefault: true, // Clears the query param if it matches the default value
+  }),
+
+  // tags - Array of selected tag slugs for filtering by tags
+  tags: parseAsArrayOf(parseAsString).withOptions({
+    clearOnDefault: true, // Removes the query param if the array is empty
   }),
 };
 
