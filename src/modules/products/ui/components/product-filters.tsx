@@ -42,13 +42,19 @@ const ProductFilter = ({ title, className, children }: ProductFilterProps) => {
 export const ProductFilters = () => {
   const [filters, setFilters] = useProductFilters(); // Sync filter state with URL query params
 
-  // hasAnyFilters - Checks if any filter has a non-empty or non-null value
-  const hasAnyFilters = Object.entries(filters).some(([, value]) => {
-    if (typeof value === "string") {
-      return value !== ""; // Checks if a string filter has a non-empty value
+  // hasAnyFilters - Determines if any active filters are set (ignores 'sort')
+  const hasAnyFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === "sort") return false; // Skip 'sort' when checking for active filters
+
+    if (Array.isArray(value)) {
+      return value.length > 0; // Array filter (e.g. tags) is active if not empty
     }
 
-    return value !== null; // Checks if a non-string filter (like an array) has a non-null value
+    if (typeof value === "string") {
+      return value !== ""; // String filter (e.g. minPrice, maxPrice) is active if not empty
+    }
+
+    return value !== null; // Fallback for other types: active if not null
   });
 
   // onClear - Reset all filter values to empty
