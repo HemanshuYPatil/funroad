@@ -4,6 +4,7 @@ import {
   ProductList,
   ProductListSkeleton,
 } from "@/modules/products/ui/components/product-list";
+import { ProductSort } from "@/modules/products/ui/components/product-sort";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { SearchParams } from "nuqs/server";
@@ -34,15 +35,20 @@ const Page = async ({ params, searchParams }: PageProps) => {
     // Wraps server-side data for hydration on client
     <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="px-4 lg:px-12 py-8 flex flex-col gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-y-2 lg:gap-y-0 justify-between">
+          {/* Header with title and sort controls */}
+          <p className="text-2xl font-medium">Curated for you</p>
+          <ProductSort />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-6 xl:grid-cols-8 gap-y-6 gap-x-12">
-          {/* Sidebar: Filters column */}
+          {/* Sidebar section for filters */}
           <div className="lg:col-span-2 xl:col-span-2">
             <ProductFilters />
           </div>
 
-          {/* Main content: Product list */}
+          {/* Main content section for product list */}
           <div className="lg:col-span-4 xl:col-span-6">
-            {/* Suspense fallback shown while ProductList loads */}
+            {/* Suspense fallback while ProductList is loading */}
             <Suspense fallback={<ProductListSkeleton />}>
               <ProductList category={category} />
             </Suspense>

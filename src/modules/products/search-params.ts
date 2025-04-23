@@ -1,7 +1,18 @@
-import { createLoader, parseAsArrayOf, parseAsString } from "nuqs/server";
+import {
+  createLoader,
+  parseAsArrayOf,
+  parseAsString,
+  parseAsStringLiteral,
+} from "nuqs/server";
+
+// Define valid sort options for the 'sort' filter
+const sortValues = ["curated", "trending", "hot_and_new"] as const;
 
 // params - Configuration for parsing and validating query string parameters on the server
 const params = {
+  // sort - Specifies the sorting order for the products, default is 'curated'
+  sort: parseAsStringLiteral(sortValues).withDefault("curated"),
+
   // minPrice - Represents the minimum price filter parsed from the URL query string
   minPrice: parseAsString.withOptions({
     clearOnDefault: true, // Clears the query param if it matches the default value (empty or null)
