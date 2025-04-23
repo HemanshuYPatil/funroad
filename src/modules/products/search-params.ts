@@ -6,7 +6,7 @@ import {
 } from "nuqs/server";
 
 // Define valid sort options for the 'sort' filter
-const sortValues = ["curated", "trending", "hot_and_new"] as const;
+export const sortValues = ["curated", "trending", "hot_and_new"] as const;
 
 // params - Configuration for parsing and validating query string parameters on the server
 const params = {
