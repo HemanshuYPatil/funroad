@@ -14,19 +14,25 @@ const params = {
   sort: parseAsStringLiteral(sortValues).withDefault("curated"),
 
   // minPrice - Represents the minimum price filter parsed from the URL query string
-  minPrice: parseAsString.withOptions({
-    clearOnDefault: true, // Clears the query param if it matches the default value (empty or null)
-  }),
+  minPrice: parseAsString
+    .withOptions({
+      clearOnDefault: true, // Clears the query param if it matches the default value (empty or null)
+    })
+    .withDefault(""), // Default to an empty string if not provided in the query string
 
   // maxPrice - Represents the maximum price filter parsed from the URL query string
-  maxPrice: parseAsString.withOptions({
-    clearOnDefault: true, // Clears the query param if it matches the default value (empty or null)
-  }),
+  maxPrice: parseAsString
+    .withOptions({
+      clearOnDefault: true, // Clears the query param if it matches the default value (empty or null)
+    })
+    .withDefault(""), // Default to an empty string if not provided in the query string
 
   // tags - Array of selected tag slugs for filtering by tags parsed from the URL query string
-  tags: parseAsArrayOf(parseAsString).withOptions({
-    clearOnDefault: true, // Clears the query param if the array is empty
-  }),
+  tags: parseAsArrayOf(parseAsString)
+    .withOptions({
+      clearOnDefault: true, // Clears the query param if the array is empty
+    })
+    .withDefault([]), // Default to an empty array if not provided in the query string
 };
 
 // loadProductFilters - Server-side loader to parse filters from the searchParams of the request
