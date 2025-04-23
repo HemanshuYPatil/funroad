@@ -1,7 +1,8 @@
 import { Category } from "@/payload-types";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
-import { Where } from "payload";
+import { Sort, Where } from "payload";
 import { z } from "zod";
+import { sortValues } from "../search-params";
 
 // productsRouter - Defines product-related API procedures
 export const productsRouter = createTRPCRouter({
@@ -12,11 +13,29 @@ export const productsRouter = createTRPCRouter({
         category: z.string().nullable().optional(), // Optional category or subcategory slug
         minPrice: z.string().nullable().optional(), // Optional minimum price filter
         maxPrice: z.string().nullable().optional(), // Optional maximum price filter
+        tags: z.array(z.string()).nullable().optional(), // Optional list of tag names for filtering
+        sort: z.enum(sortValues).nullable().optional(), // Optional sort mode for product ordering
       })
     )
     .query(async ({ ctx, input }) => {
       // Initialize an empty 'where' filter for the product query
       const where: Where = {};
+      let sort: Sort = "-createdAt"; // Default sort: newest first
+
+      // Set sort to '-createdAt' if curated mode is selected
+      if (input.sort === "curated") {
+        sort = "-createdAt";
+      }
+
+      // Set sort to '+createdAt' if hot and new mode is selected
+      if (input.sort === "hot_and_new") {
+        sort = "+createdAt";
+      }
+
+      // Set sort to '-createdAt' if trending mode is selected
+      if (input.sort === "trending") {
+        sort = "-createdAt";
+      }
 
       // Initialize price filter object if any price filters are provided
       if (input.minPrice || input.maxPrice) {
@@ -84,11 +103,19 @@ export const productsRouter = createTRPCRouter({
         }
       }
 
+      // Add tag filters if one or more tags are selected
+      if (input.tags && input.tags.length > 0) {
+        where["tags.name"] = {
+          in: input.tags, // Match any product that has one of the selected tag names
+        };
+      }
+
       // Query the products collection using the constructed filter
       const data = await ctx.db.find({
         collection: "products", // Query the products collection
         depth: 1, // Include relational fields (like images, category, etc.)
         where, // Apply the category filter (if any)
+        sort,
       });
 
       // Return the final product list

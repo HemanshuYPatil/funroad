@@ -2,6 +2,7 @@
 
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useProductFilters } from "../../hooks/use-product-filters";
 
 // ProductListProps - Defines props accepted by the ProductList component
 interface ProductListProps {
@@ -10,11 +11,14 @@ interface ProductListProps {
 
 // ProductList - Displays a list of products based on selected category or subcategory
 export const ProductList = ({ category }: ProductListProps) => {
+  const [filters] = useProductFilters(); // Read filters (e.g. minPrice, maxPrice) from URL state
   const trpc = useTRPC(); // Initialize TRPC client
 
+  // Fetch products using filters and category slug
   const { data } = useSuspenseQuery(
     trpc.products.getMany.queryOptions({
-      category, // Pass category or subcategory slug to query
+      category, // Category or subcategory slug to filter results
+      ...filters, // Spread additional query filters
     })
   );
 

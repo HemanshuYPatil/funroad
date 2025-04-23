@@ -38,6 +38,14 @@ export const Products: CollectionConfig = {
       hasMany: false, // Only one category allowed
     },
 
+    // tags - Relationship to multiple tags assigned to this product
+    {
+      name: "tags", // Field name
+      type: "relationship", // References another document
+      relationTo: "tags", // Points to the tags collection
+      hasMany: true, // A product can have many tags
+    },
+
     // images - Upload field for product images
     {
       name: "images", // Field name
