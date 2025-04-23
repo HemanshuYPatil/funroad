@@ -5,6 +5,11 @@ export const Tags: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/tags)
   slug: "tags",
 
+  // admin - Defines how this collection appears in the Payload admin panel
+  admin: {
+    useAsTitle: "name", // Display 'name' as the label in the admin panel
+  },
+
   // fields - Defines the schema/structure of the collection
   fields: [
     // name - Display name of the tag (e.g., 'New Arrival', 'Sale')
