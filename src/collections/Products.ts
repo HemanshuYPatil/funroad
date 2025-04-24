@@ -46,9 +46,9 @@ export const Products: CollectionConfig = {
       hasMany: true, // A product can have many tags
     },
 
-    // images - Upload field for product images
+    // image - Upload field for product image
     {
-      name: "images", // Field name
+      name: "image", // Field name
       type: "upload", // File upload input
       relationTo: "media", // Points to the media collection
       hasMany: true, // Multiple images allowed
