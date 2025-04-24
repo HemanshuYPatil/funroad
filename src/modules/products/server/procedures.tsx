@@ -1,4 +1,5 @@
-import { Category } from "@/payload-types";
+import { DEFAULT_LIMIT } from "@/constants";
+import { Category, Media } from "@/payload-types";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { Sort, Where } from "payload";
 import { z } from "zod";
@@ -10,6 +11,8 @@ export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
     .input(
       z.object({
+        cursor: z.number().default(1), // The page number or cursor for pagination, defaults to 1
+        limit: z.number().default(DEFAULT_LIMIT), // The number of products to fetch, defaults to the defined DEFAULT_LIMIT
         category: z.string().nullable().optional(), // Optional category or subcategory slug
         minPrice: z.string().nullable().optional(), // Optional minimum price filter
         maxPrice: z.string().nullable().optional(), // Optional maximum price filter
@@ -116,9 +119,17 @@ export const productsRouter = createTRPCRouter({
         depth: 1, // Include relational fields (like images, category, etc.)
         where, // Apply the category filter (if any)
         sort,
+        page: input.cursor, // Set the pagination cursor
+        limit: input.limit, // Limit the number of results
       });
 
       // Return the final product list
-      return data;
+      return {
+        ...data, // Spread all pagination and meta fields (like totalDocs, limit, etc.)
+        docs: data.docs.map((doc) => ({
+          ...doc, // Spread product fields
+          image: doc.image as Media | null, // Ensure product image is typed as Media or null
+        })),
+      };
     }),
 });

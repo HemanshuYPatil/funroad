@@ -1,9 +1,9 @@
-import {
-  ProductList,
-  ProductListSkeleton,
-} from "@/modules/products/ui/components/product-list";
+import { loadProductFilters } from "@/modules/products/search-params";
+import { ProductListSkeleton } from "@/modules/products/ui/components/product-list";
+import { ProductListView } from "@/modules/products/ui/views/product-list-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { SearchParams } from "nuqs/server";
 import { Suspense } from "react";
 
 // PageProps - Defines the shape of the route parameters passed to this page
@@ -11,11 +11,13 @@ interface PageProps {
   params: Promise<{
     subcategory: string; // Subcategory from the route
   }>;
+  searchParams: Promise<SearchParams>; // URL query params (minPrice, maxPrice, etc.)
 }
 
 // Page - Displays content based on the selected subcategory
-const Page = async ({ params }: PageProps) => {
+const Page = async ({ params, searchParams }: PageProps) => {
   const { subcategory } = await params; // Await the resolved params
+  const filters = await loadProductFilters(searchParams); // Parse filters from search params
 
   const queryClient = getQueryClient(); // Create a query client instance
 
@@ -23,6 +25,7 @@ const Page = async ({ params }: PageProps) => {
   void queryClient.prefetchQuery(
     trpc.products.getMany.queryOptions({
       category: subcategory, // Pass subcategory as category slug
+      ...filters, // Include minPrice, maxPrice filters
     })
   );
 
@@ -31,7 +34,7 @@ const Page = async ({ params }: PageProps) => {
     <HydrationBoundary state={dehydrate(queryClient)}>
       {/* Show skeleton fallback while loading data */}
       <Suspense fallback={<ProductListSkeleton />}>
-        <ProductList category={subcategory} />
+        <ProductListView category={subcategory} />
       </Suspense>
     </HydrationBoundary>
   );
