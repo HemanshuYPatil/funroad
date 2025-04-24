@@ -10,8 +10,6 @@ export const Tenants: CollectionConfig = {
     useAsTitle: "slug", // Display the slug field as the document title in admin UI
   },
 
-  auth: true, // Enables authentication for this collection
-
   // fields - Defines the schema/structure of the tenants collection
   fields: [
     // name - The display name of the store (e.g., "John Doe's Store")
