@@ -41,6 +41,16 @@ export const authRouter = createTRPCRouter({
         });
       }
 
+      // Create a new tenant for the user
+      const tenant = await ctx.db.create({
+        collection: "tenants",
+        data: {
+          name: input.username, // Use username for tenant name
+          slug: input.username, // Use username for slug to match subdomain
+          stripeAccountId: "test", // Stub value for Stripe ID (adjust in production)
+        },
+      });
+
       // Create a new user record in the Payload CMS database
       await ctx.db.create({
         collection: "users",
@@ -48,6 +58,11 @@ export const authRouter = createTRPCRouter({
           email: input.email,
           username: input.username,
           password: input.password,
+          tenants: [
+            {
+              tenant: tenant.id, // Link the created tenant to the user
+            },
+          ],
         },
       });
 
