@@ -6,7 +6,6 @@ import { CategoriesGetManyOutput } from "@/modules/categories/types";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { SubcategoryMenu } from "./subcategory-menu";
-import { useDropdownPosition } from "./use-dropdown-position";
 
 // CategoryDropdownProps - Props accepted by the CategoryDropdown component
 interface CategoryDropdownProps {
@@ -23,7 +22,6 @@ export const CategoryDropdown = ({
 }: CategoryDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false); // Track if the dropdown is open (initially closed)
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref to attach to the dropdown container for position calculation
-  const { getDropdownPosition } = useDropdownPosition(dropdownRef); // Custom hook to calculate the dropdown's position based on viewport
 
   // Handle mouse enter event to open dropdown if subcategories exist
   const onMouseEnter = () => {
@@ -34,9 +32,6 @@ export const CategoryDropdown = ({
 
   // Handle mouse leave event to close dropdown when the mouse leaves the area
   const onMouseLeave = () => setIsOpen(false); // Close dropdown when mouse leaves the button
-
-  // Get the position for the dropdown using the custom hook
-  const dropdownPosition = getDropdownPosition(); // Fetch calculated position based on the dropdown's reference
 
   return (
     <div
@@ -77,7 +72,6 @@ export const CategoryDropdown = ({
       <SubcategoryMenu
         category={category}
         isOpen={isOpen} // Pass state to determine whether the menu should be visible
-        position={dropdownPosition} // Pass the calculated dropdown position for accurate placement
       />
     </div>
   );

@@ -7,15 +7,10 @@ import Link from "next/link";
 interface SubcategoryMenuProps {
   category: CategoriesGetManyOutput[1]; // The category object containing the subcategories to be displayed
   isOpen: boolean; // Indicates whether the dropdown menu is open or closed
-  position: { top: number; left: number }; // Position where the menu should be rendered (top and left coordinates)
 }
 
 // SubcategoryMenu - Component to render the subcategory dropdown menu
-export const SubcategoryMenu = ({
-  category,
-  isOpen,
-  position,
-}: SubcategoryMenuProps) => {
+export const SubcategoryMenu = ({ category, isOpen }: SubcategoryMenuProps) => {
   // Exit early if dropdown is not open or there are no subcategories to show
   if (
     !isOpen ||
@@ -29,10 +24,7 @@ export const SubcategoryMenu = ({
   const backgroundColor = category.color || DEFAULT_BG_COLOR;
 
   return (
-    <div
-      className="fixed z-100"
-      style={{ top: position.top, left: position.left }} // Position the dropdown relative to viewport
-    >
+    <div className="absolute z-100 top-[100%] left-0">
       {/* Invisible hover bridge to maintain dropdown on hover */}
       <div className="h-3 w-60" />
 
