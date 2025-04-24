@@ -209,6 +209,7 @@ export interface Category {
  */
 export interface Product {
   id: string;
+  tenant?: (string | null) | Tenant;
   name: string;
   description?: string | null;
   /**
@@ -219,17 +220,6 @@ export interface Product {
   tags?: (string | Tag)[] | null;
   image?: (string | Media)[] | null;
   refundPolicy?: ('30-day' | '14-day' | '7-day' | '3-day' | '1-day' | 'no-refunds') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tags".
- */
-export interface Tag {
-  id: string;
-  name: string;
-  products?: (string | Product)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -263,6 +253,17 @@ export interface Tenant {
   loginAttempts?: number | null;
   lockUntil?: string | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: string;
+  name: string;
+  products?: (string | Product)[] | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -399,6 +400,7 @@ export interface CategoriesSelect<T extends boolean = true> {
  * via the `definition` "products_select".
  */
 export interface ProductsSelect<T extends boolean = true> {
+  tenant?: T;
   name?: T;
   description?: T;
   price?: T;
