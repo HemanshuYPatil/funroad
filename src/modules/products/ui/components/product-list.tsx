@@ -58,8 +58,8 @@ export const ProductList = ({ category }: ProductListProps) => {
               id={product.id}
               name={product.name}
               imageUrl={product.image?.url}
-              authorUsername="jair" // Static author data
-              authorImageUrl={undefined}
+              authorUsername={product.tenant?.name}
+              authorImageUrl={product.tenant?.image?.url}
               reviewRating={3} // Placeholder review rating
               reviewCount={5} // Placeholder review count
               price={product.price}
