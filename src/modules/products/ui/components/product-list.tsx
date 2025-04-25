@@ -11,10 +11,11 @@ import { ProductCard, ProductCardSkeleton } from "./product-card";
 // ProductListProps - Defines props accepted by the ProductList component
 interface ProductListProps {
   category?: string; // Optional category or subcategory slug used to filter the product list
+  tenantSlug?: string; // Optional tenant identifier used to filter products by tenant
 }
 
 // ProductList - Displays a list of products based on selected category or subcategory
-export const ProductList = ({ category }: ProductListProps) => {
+export const ProductList = ({ category, tenantSlug }: ProductListProps) => {
   const [filters] = useProductFilters(); // Read filters (e.g. minPrice, maxPrice) from URL state
   const trpc = useTRPC(); // Initialize TRPC client
 
@@ -23,8 +24,9 @@ export const ProductList = ({ category }: ProductListProps) => {
     useSuspenseInfiniteQuery(
       trpc.products.getMany.infiniteQueryOptions(
         {
-          category, // Category or subcategory slug to filter results
           ...filters, // Spread additional query filters
+          category, // Category or subcategory slug to filter results
+          tenantSlug, // Tenant slug for tenant-specific product filtering
           limit: DEFAULT_LIMIT, // Limit results per page
         },
         {
