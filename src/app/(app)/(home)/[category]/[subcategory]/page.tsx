@@ -1,3 +1,4 @@
+import { DEFAULT_LIMIT } from "@/constants";
 import { loadProductFilters } from "@/modules/products/search-params";
 import { ProductListSkeleton } from "@/modules/products/ui/components/product-list";
 import { ProductListView } from "@/modules/products/ui/views/product-list-view";
@@ -21,11 +22,12 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
   const queryClient = getQueryClient(); // Create a query client instance
 
-  // Prefetch product data for the selected subcategory
-  void queryClient.prefetchQuery(
-    trpc.products.getMany.queryOptions({
-      category: subcategory, // Pass subcategory as category slug
-      ...filters, // Include minPrice, maxPrice filters
+  // Prefetch paginated product data using subcategory and filters
+  void queryClient.prefetchInfiniteQuery(
+    trpc.products.getMany.infiniteQueryOptions({
+      category: subcategory, // Treat subcategory as the category filter
+      ...filters, // Spread filter parameters (minPrice, maxPrice, etc.)
+      limit: DEFAULT_LIMIT, // Use default pagination limit
     })
   );
 
