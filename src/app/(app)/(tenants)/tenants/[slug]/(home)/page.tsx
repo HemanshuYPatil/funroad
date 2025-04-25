@@ -30,7 +30,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   return (
     // HydrationBoundary - Wraps the pre-fetched data to hydrate the client side
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <ProductListView tenantSlug={slug} />
+      <ProductListView tenantSlug={slug} narrowView />
     </HydrationBoundary>
   );
 };
