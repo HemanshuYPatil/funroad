@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Enables client-side rendering
 
 import { StarRating } from "@/components/star-rating";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,27 @@ import { formatCurrency, generateTenantURL } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { LinkIcon, StarIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
+
+// CartButton - Dynamically import the CartButton component for client-side rendering only
+const CartButton = dynamic(
+  // Lazy-load the CartButton component from the components folder
+  () => import("../components/cart-button").then((mod) => mod.CartButton),
+
+  {
+    ssr: false, // Disable server-side rendering to ensure the component is only rendered on the client
+
+    // Show a fallback loading button while the component is being loaded
+    loading: () => (
+      <Button disabled className="flex-1 bg-pink-400">
+        Add to card
+      </Button>
+    ),
+  }
+);
 
 // ProductViewProps - Props for the product detail view
 interface ProductViewProps {
@@ -116,11 +134,9 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
             <div className="border-t lg:border-t-0 lg:border-l h-full">
               {/* Add to cart section */}
               <div className="flex flex-col gap-4 p-6 border-b">
-                {/* Add to cart + wishlist buttons */}
+                {/* Cart and share action buttons */}
                 <div className="flex flex-row items-center gap-2">
-                  <Button variant={"elevated"} className="flex-1 bg-pink-400">
-                    Add to cart
-                  </Button>
+                  <CartButton tenantSlug={tenantSlug} productId={productId} />
 
                   <Button
                     variant={"elevated"}
