@@ -7,6 +7,29 @@ import { sortValues } from "../search-params";
 
 // productsRouter - Defines product-related API procedures
 export const productsRouter = createTRPCRouter({
+  // getOne - Fetches a single product by its ID
+  getOne: baseProcedure
+    .input(
+      z.object({
+        id: z.string(), // Product ID to query by
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Query the database for a product with the specified ID
+      const product = await ctx.db.findByID({
+        collection: "products", // Look in the products collection
+        id: input.id, // Use the provided ID to find the product
+        depth: 2, // Include related fields like image, category, tenant, tenant.image
+      });
+
+      // Return the product with relational fields properly cast
+      return {
+        ...product, // Spread base product fields
+        image: product.image as Media | null, // Cast image field to Media or null to ensure consistent typing
+        tenant: product.tenant as Tenant & { image: Media | null }, // Cast tenant to include an image field
+      };
+    }),
+
   // getMany - Fetches products filtered by a category or subcategory
   getMany: baseProcedure
     .input(

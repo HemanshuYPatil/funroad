@@ -35,7 +35,7 @@ const Layout = async ({ children, params }: LayoutProps) => {
       {/* Main content area grows to fill vertical space */}
       <div className="flex-1">
         {/* Constrain content to max width on large screens */}
-        <div className="mx-w-(--breakpoint-xl) mx-auto">{children}</div>
+        <div className="max-w-(--breakpoint-xl) mx-auto">{children}</div>
       </div>
 
       {/* Footer with tenant-specific links and info */}
