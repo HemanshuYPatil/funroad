@@ -1,14 +1,16 @@
+import { generateTenantURL } from "@/lib/utils";
 import { StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // ProductCardProps - Props for rendering an individual product card
 interface ProductCardProps {
   id: string; // Unique product ID for routing
   name: string; // Name of the product
   imageUrl?: string | null; // Optional image URL for the product
-  authorUsername: string; // Username of the product's creator
-  authorImageUrl?: string | null; // Optional image URL of the creator
+  tenantSlug: string; // Slug of the product's associated tenant
+  tenantImageUrl?: string | null; // Optional image URL of the tenant/creator
   reviewRating: number; // Average star rating for the product
   reviewCount: number; // Total number of reviews for the product
   price: number; // Product price in USD
@@ -19,12 +21,21 @@ export const ProductCard = ({
   id,
   name,
   imageUrl,
-  authorUsername,
-  authorImageUrl,
+  tenantSlug,
+  tenantImageUrl,
   reviewRating,
   reviewCount,
   price,
 }: ProductCardProps) => {
+  const router = useRouter(); // Initialize Next.js router for programmatic navigation
+
+  // handleUserClick - Handle clicking the tenant info to navigate to their page without triggering product link navigation
+  const handleUserClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault(); // Prevent default Link behavior
+    e.stopPropagation(); // Stop event from bubbling up to parent Link
+    router.push(generateTenantURL(tenantSlug)); // Navigate to the tenant's store page
+  };
+
   return (
     <Link href={`/products/${id}`}>
       <div className="hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow border rounded-md bg-white overflow-hidden h-full flex flex-col">
@@ -42,18 +53,18 @@ export const ProductCard = ({
         <div className="p-4 border-y flex flex-col gap-3 flex-1">
           <h2 className="text-lg font-medium line-clamp-4">{name}</h2>
 
-          {/* Author display with avatar (no redirect yet) */}
-          <div className="flex items-center gap-2" onClick={() => {}}>
-            {authorImageUrl && (
+          {/* Tenant info with avatar and name, click navigates to tenant's store */}
+          <div className="flex items-center gap-2" onClick={handleUserClick}>
+            {tenantImageUrl && (
               <Image
-                alt={authorUsername}
-                src={authorImageUrl}
+                alt={tenantSlug}
+                src={tenantImageUrl}
                 width={16}
                 height={16}
                 className="rounded-full border shrink-0 size-[16px]"
               />
             )}
-            <p className="text-sm underline font-medium">{authorUsername}</p>
+            <p className="text-sm underline font-medium">{tenantSlug}</p>
           </div>
 
           {/* Show rating if the product has reviews */}

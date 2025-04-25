@@ -1,5 +1,5 @@
 import { DEFAULT_LIMIT } from "@/constants";
-import { Category, Media } from "@/payload-types";
+import { Category, Media, Tenant } from "@/payload-types";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { Sort, Where } from "payload";
 import { z } from "zod";
@@ -18,6 +18,7 @@ export const productsRouter = createTRPCRouter({
         maxPrice: z.string().nullable().optional(), // Optional maximum price filter
         tags: z.array(z.string()).nullable().optional(), // Optional list of tag names for filtering
         sort: z.enum(sortValues).nullable().optional(), // Optional sort mode for product ordering
+        tenantSlug: z.string().nullable().optional(), // Optional tenant slug for multi-tenant filtering
       })
     )
     .query(async ({ ctx, input }) => {
@@ -58,6 +59,13 @@ export const productsRouter = createTRPCRouter({
         where.price = {
           ...where.price,
           less_than_equal: input.maxPrice,
+        };
+      }
+
+      // Apply tenant filter if a tenant slug is provided
+      if (input.tenantSlug) {
+        where["tenant.slug"] = {
+          equals: input.tenantSlug, // Match products belonging to a specific tenant
         };
       }
 
@@ -116,7 +124,7 @@ export const productsRouter = createTRPCRouter({
       // Query the products collection using the constructed filter
       const data = await ctx.db.find({
         collection: "products", // Query the products collection
-        depth: 1, // Include relational fields (like images, category, etc.)
+        depth: 2, // Include relational fields (like images, category, tenant, tenant.image etc.)
         where, // Apply the category filter (if any)
         sort,
         page: input.cursor, // Set the pagination cursor
@@ -125,10 +133,11 @@ export const productsRouter = createTRPCRouter({
 
       // Return the final product list
       return {
-        ...data, // Spread all pagination and meta fields (like totalDocs, limit, etc.)
+        ...data, // Include all pagination and meta fields (e.g., totalDocs, limit, totalPages, etc.)
         docs: data.docs.map((doc) => ({
-          ...doc, // Spread product fields
-          image: doc.image as Media | null, // Ensure product image is typed as Media or null
+          ...doc, // Spread base product fields
+          image: doc.image as Media | null, // Cast product image to Media or null to enforce proper type
+          tenant: doc.tenant as Tenant & { image: Media | null }, // Cast tenant field to include image property
         })),
       };
     }),

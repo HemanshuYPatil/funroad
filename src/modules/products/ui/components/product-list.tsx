@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { DEFAULT_LIMIT } from "@/constants";
+import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { InboxIcon } from "lucide-react";
@@ -11,10 +12,16 @@ import { ProductCard, ProductCardSkeleton } from "./product-card";
 // ProductListProps - Defines props accepted by the ProductList component
 interface ProductListProps {
   category?: string; // Optional category or subcategory slug used to filter the product list
+  tenantSlug?: string; // Optional tenant identifier used to filter products by tenant
+  narrowView?: boolean; // Enables a narrower grid layout for responsive views
 }
 
 // ProductList - Displays a list of products based on selected category or subcategory
-export const ProductList = ({ category }: ProductListProps) => {
+export const ProductList = ({
+  category,
+  tenantSlug,
+  narrowView,
+}: ProductListProps) => {
   const [filters] = useProductFilters(); // Read filters (e.g. minPrice, maxPrice) from URL state
   const trpc = useTRPC(); // Initialize TRPC client
 
@@ -23,8 +30,9 @@ export const ProductList = ({ category }: ProductListProps) => {
     useSuspenseInfiniteQuery(
       trpc.products.getMany.infiniteQueryOptions(
         {
-          category, // Category or subcategory slug to filter results
           ...filters, // Spread additional query filters
+          category, // Category or subcategory slug to filter results
+          tenantSlug, // Tenant slug for tenant-specific product filtering
           limit: DEFAULT_LIMIT, // Limit results per page
         },
         {
@@ -47,9 +55,14 @@ export const ProductList = ({ category }: ProductListProps) => {
   }
 
   return (
-    // Render a responsive product grid layout
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+      {/* Render a responsive product grid layout */}
+      <div
+        className={cn(
+          "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4",
+          narrowView && "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3"
+        )}
+      >
         {data.pages
           .flatMap((page) => page.docs) // Flatten all pages into one array
           .map((product) => (
@@ -58,8 +71,8 @@ export const ProductList = ({ category }: ProductListProps) => {
               id={product.id}
               name={product.name}
               imageUrl={product.image?.url}
-              authorUsername="jair" // Static author data
-              authorImageUrl={undefined}
+              tenantSlug={product.tenant?.slug}
+              tenantImageUrl={product.tenant?.image?.url}
               reviewRating={3} // Placeholder review rating
               reviewCount={5} // Placeholder review count
               price={product.price}
@@ -72,7 +85,7 @@ export const ProductList = ({ category }: ProductListProps) => {
         {hasNextPage && (
           <Button
             disabled={isFetchingNextPage}
-            onClick={() => fetchNextPage()}
+            onClick={() => fetchNextPage()} // Fetch next page of products on click
             className="font-medium disabled:opacity-50 text-base bg-white"
             variant={"elevated"}
           >
@@ -85,11 +98,17 @@ export const ProductList = ({ category }: ProductListProps) => {
 };
 
 // ProductListSkeleton - Fallback component shown while loading product list
-export const ProductListSkeleton = () => {
+export const ProductListSkeleton = ({ narrowView }: ProductListProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+    // Display skeleton cards in a responsive grid while loading
+    <div
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4",
+        narrowView && "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3"
+      )}
+    >
       {Array.from({ length: DEFAULT_LIMIT }).map((_, index) => (
-        <ProductCardSkeleton key={index} /> // Render skeleton cards as placeholders
+        <ProductCardSkeleton key={index} /> // Render skeleton card as placeholder
       ))}
     </div>
   );
