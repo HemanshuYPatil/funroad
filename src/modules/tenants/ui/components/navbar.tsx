@@ -1,20 +1,43 @@
 "use client"; // Enables client-side rendering
 
+import { Button } from "@/components/ui/button";
 import { generateTenantURL } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { ShoppingCartIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 
+// CheckoutButton - Dynamically import the CheckoutButton component for client-side rendering only
+const CheckoutButton = dynamic(
+  // Lazy-load the CheckoutButton component from the checkout module
+  () =>
+    import("@/modules/checkout/ui/components/checkout-button").then(
+      (mod) => mod.CheckoutButton
+    ),
+
+  {
+    ssr: false, // Disable server-side rendering to ensure it's only rendered on the client
+
+    // Show a disabled icon button while the CheckoutButton is loading
+    loading: () => (
+      <Button disabled className="bg-white">
+        <ShoppingCartIcon className="text-black" />
+      </Button>
+    ),
+  }
+);
+
 // NavbarProps - Props required by the tenant navigation bar
 interface NavbarProps {
-  slug: string; // Tenant slug used to fetch data and generate tenant-specific URLs
+  slug: string; // Tenant slug used to fetch tenant data and build tenant-specific links
 }
 
-// Navbar - Main navigation bar for the tenant page
+// Navbar - Render the top navigation bar with logo, tenant name, and cart button
 export const Navbar = ({ slug }: NavbarProps) => {
   const trpc = useTRPC(); // Initialize tRPC client
-  const { data } = useSuspenseQuery(trpc.tenants.getOne.queryOptions({ slug })); // Fetch tenant data
+  const { data } = useSuspenseQuery(trpc.tenants.getOne.queryOptions({ slug })); // Fetch tenant data by slug
 
   return (
     <nav className="h-20 border-b font-medium bg-white">
@@ -36,6 +59,9 @@ export const Navbar = ({ slug }: NavbarProps) => {
           {/* Display tenant name */}
           <p className="text-xl">{data.name}</p>
         </Link>
+
+        {/* Render the checkout button if the cart has items */}
+        <CheckoutButton hideIfEmpty tenantSlug={slug} />
       </div>
     </nav>
   );
@@ -47,7 +73,9 @@ export const NavbarSkeleton = () => {
     <nav className="h-20 border-b font-medium bg-white">
       <div className="max-w-(--breakpoint-xl) mx-auto flex justify-between items-center h-full px-4 lg:px-12">
         <div />
-        {/* TODO: Skeleton for checkout button */}
+        <Button disabled className="bg-white">
+          <ShoppingCartIcon className="text-black" />
+        </Button>
       </div>
     </nav>
   );
