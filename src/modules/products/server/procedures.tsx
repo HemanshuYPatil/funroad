@@ -18,6 +18,7 @@ export const productsRouter = createTRPCRouter({
         maxPrice: z.string().nullable().optional(), // Optional maximum price filter
         tags: z.array(z.string()).nullable().optional(), // Optional list of tag names for filtering
         sort: z.enum(sortValues).nullable().optional(), // Optional sort mode for product ordering
+        tenantSlug: z.string().nullable().optional(), // Optional tenant slug for multi-tenant filtering
       })
     )
     .query(async ({ ctx, input }) => {
@@ -58,6 +59,13 @@ export const productsRouter = createTRPCRouter({
         where.price = {
           ...where.price,
           less_than_equal: input.maxPrice,
+        };
+      }
+
+      // Apply tenant filter if a tenant slug is provided
+      if (input.tenantSlug) {
+        where["tenant.slug"] = {
+          equals: input.tenantSlug, // Match products belonging to a specific tenant
         };
       }
 
