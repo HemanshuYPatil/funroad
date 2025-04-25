@@ -60,8 +60,8 @@ export const ProductList = ({ category, tenantSlug }: ProductListProps) => {
               id={product.id}
               name={product.name}
               imageUrl={product.image?.url}
-              authorUsername={product.tenant?.name}
-              authorImageUrl={product.tenant?.image?.url}
+              tenantSlug={product.tenant?.slug}
+              tenantImageUrl={product.tenant?.image?.url}
               reviewRating={3} // Placeholder review rating
               reviewCount={5} // Placeholder review count
               price={product.price}
