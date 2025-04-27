@@ -3,6 +3,7 @@
 import { generateTenantURL } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
+import { InboxIcon, LoaderIcon } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useCart } from "../../hooks/use-cart";
@@ -21,7 +22,7 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   // Access the tRPC client
   const trpc = useTRPC();
   // Fetch detailed product data for all products in the cart
-  const { data, error } = useQuery(
+  const { data, error, isLoading } = useQuery(
     trpc.checkout.getProducts.queryOptions({
       ids: productIds, // Send list of product IDs to the backend
     })
@@ -34,6 +35,29 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
       toast.warning("Invalid products found, cart cleared.");
     }
   }, [clearAllCarts, error]);
+
+  // Render loading state while fetching product data
+  if (isLoading) {
+    return (
+      <div className="lg:pt-16 pt-4 px-4 lg:px-12">
+        <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
+          <LoaderIcon className="text-muted-foreground animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // Render empty state if no products are found
+  if (data?.totalDocs === 0) {
+    return (
+      <div className="lg:pt-16 pt-4 px-4 lg:px-12">
+        <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
+          <InboxIcon />
+          <p className="text-base font-medium">No products found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="lg:pt-16 pt-4 px-4 lg:px-12">
