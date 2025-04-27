@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useCart } from "../../hooks/use-cart";
 import { CheckoutItem } from "../components/checkout-item";
+import { CheckoutSidebar } from "../components/checkout-sidebar";
 
 // CheckoutViewProps - Props accepted by the CheckoutView component
 interface CheckoutViewProps {
@@ -85,8 +86,12 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
 
         {/* Checkout sidebar section */}
         <div className="lg:col-span-3">
-          {/* TODO: Add checkout summary (total price, payment options, etc.) */}
-          Checkout sidebar
+          <CheckoutSidebar
+            total={data?.totalPrice || 0}
+            onCheckout={() => {}}
+            isCanceled={false}
+            isPending={false}
+          />
         </div>
       </div>
     </div>
