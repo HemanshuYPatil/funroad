@@ -5,17 +5,17 @@ import { CircleXIcon } from "lucide-react";
 // CheckoutSidebarProps - Props accepted by the CheckoutSidebar component
 interface CheckoutSidebarProps {
   total: number; // Total amount for the checkout
-  onCheckout: () => void; // Function to handle the checkout action
+  onPurchase: () => void; // Function to handle the purchase action
   isCanceled?: boolean; // Indicates if the checkout failed (optional)
-  isPending?: boolean; // Indicates if the checkout is still processing (optional)
+  disabled?: boolean; // Disables the checkout button while a purchase is in progress (optional)
 }
 
 // CheckoutSidebar - Renders the sidebar with total price and checkout button
 export const CheckoutSidebar = ({
   total,
-  onCheckout,
+  onPurchase,
   isCanceled,
-  isPending,
+  disabled,
 }: CheckoutSidebarProps) => {
   return (
     <div className="border rounded-md overflow-hidden bg-white flex flex-col">
@@ -29,8 +29,8 @@ export const CheckoutSidebar = ({
       <div className="p-4 flex items-center justify-center">
         <Button
           variant={"elevated"} // Elevated style for the button
-          disabled={isPending} // Disable button when checkout is pending
-          onClick={onCheckout} // Handle the checkout action when clicked
+          disabled={disabled} // Disable button when checkout is pending
+          onClick={onPurchase} // Handle the checkout action when clicked
           size={"lg"}
           className="text-base w-full text-white bg-primary hover:bg-pink-400 hover:text-primary"
         >

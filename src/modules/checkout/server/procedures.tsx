@@ -16,7 +16,7 @@ export const checkoutRouter = createTRPCRouter({
   purchase: protectedProcedures
     .input(
       z.object({
-        productsIds: z.array(z.string()).min(1), // Array of product IDs to purchase
+        productIds: z.array(z.string()).min(1), // Array of product IDs to purchase
         tenantSlug: z.string().min(1), // Slug identifying the tenant/store
       })
     )
@@ -27,14 +27,14 @@ export const checkoutRouter = createTRPCRouter({
         depth: 2, // Fetch related fields (e.g., tenant, image)
         where: {
           and: [
-            { id: { in: input.productsIds } }, // Match product IDs
+            { id: { in: input.productIds } }, // Match product IDs
             { "tenant.slug": { equals: input.tenantSlug } }, // Match by tenant slug
           ],
         },
       });
 
       // Throw error if some products are missing (possible mismatch or filtering issue)
-      if (products.totalDocs !== input.productsIds.length) {
+      if (products.totalDocs !== input.productIds.length) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Products not found",
@@ -69,12 +69,12 @@ export const checkoutRouter = createTRPCRouter({
         products.docs.map((product) => ({
           quantity: 1, // Each product has a quantity of 1
           price_data: {
-            stripeAccountId: tenant.stripeAccountId, // Use the tenant’s Stripe account
             unit_amount: product.price * 100, // Convert price to cents (required by Stripe)
-            currency: "mxn", // Currency set to MXN (can be made dynamic later)
+            currency: "usd", // Currency set to USD
             product_data: {
               name: product.name, // Product name shown in Stripe checkout
               metadata: {
+                stripeAccountId: tenant.stripeAccountId, // Use the tenant’s Stripe account
                 id: product.id, // Store product ID in metadata
                 name: product.name, // Store product name in metadata
                 price: product.price, // Store product price in metadata

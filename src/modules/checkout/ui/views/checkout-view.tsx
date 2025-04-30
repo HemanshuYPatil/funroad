@@ -2,11 +2,13 @@
 
 import { generateTenantURL } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { InboxIcon, LoaderIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useCart } from "../../hooks/use-cart";
+import { useCheckoutState } from "../../hooks/use-checkout-state";
 import { CheckoutItem } from "../components/checkout-item";
 import { CheckoutSidebar } from "../components/checkout-sidebar";
 
@@ -17,8 +19,11 @@ interface CheckoutViewProps {
 
 // CheckoutView - Renders the checkout page with products and a sidebar
 export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
+  const router = useRouter(); // Next.js navigation
+
+  const [states, setStates] = useCheckoutState(); // Read and manage checkout query state (success/cancel)
   // Extract cart state and actions based on tenant
-  const { productIds, clearAllCarts, removeProduct } = useCart(tenantSlug);
+  const { productIds, clearCart, removeProduct } = useCart(tenantSlug);
 
   // Access the tRPC client
   const trpc = useTRPC();
@@ -29,13 +34,49 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
     })
   );
 
+  // tRPC mutation to initiate a Stripe checkout session
+  const purchase = useMutation(
+    trpc.checkout.purchase.mutationOptions({
+      onMutate: () => {
+        // Reset checkout query state before starting a new purchase
+        setStates({ success: false, cancel: false });
+      },
+      onSuccess: (data) => {
+        // Redirect to Stripe checkout URL on success
+        window.location.href = data.url;
+      },
+      onError: (error) => {
+        // If user is not authenticated, redirect to sign-in
+        if (error?.data?.code === "UNAUTHORIZED") {
+          router.push("/sign-in");
+        }
+
+        // Display error toast message
+        toast.error(error.message);
+      },
+    })
+  );
+
+  // Clear cart and redirect after successful checkout
+  useEffect(() => {
+    if (states.success) {
+      setStates({
+        success: false, // Reset success state to prevent re-trigger
+        cancel: false, // Clear any cancel flag
+      });
+      clearCart(); // Remove all products from cart
+      // TODO: Invalidate library
+      router.push("/products"); // Redirect to product listing page
+    }
+  }, [states.success, clearCart, router, setStates]);
+
   // Handle invalid product error by clearing cart and showing a warning
   useEffect(() => {
     if (error?.data?.code === "NOT_FOUND") {
-      clearAllCarts();
+      clearCart();
       toast.warning("Invalid products found, cart cleared.");
     }
-  }, [clearAllCarts, error]);
+  }, [error, clearCart]);
 
   // Render loading state while fetching product data
   if (isLoading) {
@@ -88,9 +129,9 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
         <div className="lg:col-span-3">
           <CheckoutSidebar
             total={data?.totalPrice || 0}
-            onCheckout={() => {}}
-            isCanceled={false}
-            isPending={false}
+            onPurchase={() => purchase.mutate({ tenantSlug, productIds })}
+            isCanceled={states.cancel}
+            disabled={purchase.isPending}
           />
         </div>
       </div>
