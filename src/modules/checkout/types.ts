@@ -1,3 +1,5 @@
+import Stripe from "stripe";
+
 // ProductMetadata - Metadata attached to a product in Stripe
 export type ProductMetadata = {
   stripeAccountId: string; // ID of the Stripe account associated with the product
@@ -9,4 +11,13 @@ export type ProductMetadata = {
 // CheckoutMetadata - Metadata attached to a Stripe checkout session
 export type CheckoutMetadata = {
   userId: string; // ID of the user initiating the checkout
+};
+
+// ExpandedLineItems - Stripe line item type extended with deeply nested product metadata
+export type ExpandedLineItems = Stripe.LineItem & {
+  price: Stripe.Price & {
+    product: Stripe.Product & {
+      metadata: ProductMetadata; // Metadata included in the product object
+    };
+  };
 };
