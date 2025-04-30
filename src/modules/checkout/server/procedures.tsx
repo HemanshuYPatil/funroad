@@ -1,10 +1,117 @@
+import { stripe } from "@/lib/stripe";
 import { Media, Tenant } from "@/payload-types";
-import { baseProcedure, createTRPCRouter } from "@/trpc/init";
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedures,
+} from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
+import Stripe from "stripe";
 import { z } from "zod";
+import { CheckoutMetadata, ProductMetadata } from "../types";
 
 // checkoutRouter - Defines checkout-related API procedures
 export const checkoutRouter = createTRPCRouter({
+  // purchase - Creates a Stripe Checkout session for purchasing specified products from a tenant
+  purchase: protectedProcedures
+    .input(
+      z.object({
+        productsIds: z.array(z.string()).min(1), // Array of product IDs to purchase
+        tenantSlug: z.string().min(1), // Slug identifying the tenant/store
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Fetch products that match the provided IDs and belong to the specified tenant
+      const products = await ctx.db.find({
+        collection: "products",
+        depth: 2, // Fetch related fields (e.g., tenant, image)
+        where: {
+          and: [
+            { id: { in: input.productsIds } }, // Match product IDs
+            { "tenant.slug": { equals: input.tenantSlug } }, // Match by tenant slug
+          ],
+        },
+      });
+
+      // Throw error if some products are missing (possible mismatch or filtering issue)
+      if (products.totalDocs !== input.productsIds.length) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Products not found",
+        });
+      }
+
+      // Fetch the tenant by slug
+      const tenantsData = await ctx.db.find({
+        collection: "tenants",
+        limit: 1,
+        pagination: false,
+        where: {
+          slug: { equals: input.tenantSlug }, // Match the tenant by slug
+        },
+      });
+
+      const tenant = tenantsData.docs[0]; // Extract the first tenant match
+
+      // Throw error if the tenant is not found (invalid or outdated slug)
+      if (!tenant) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tenant not found",
+        });
+      }
+
+      // NOTE: Add explicit check here to ensure tenant has a Stripe account ID configured
+      // if (!tenant.stripeAccountId) throw new TRPCError({ ... });
+
+      // Construct line items for each product to be used in the checkout session
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
+        products.docs.map((product) => ({
+          quantity: 1, // Each product has a quantity of 1
+          price_data: {
+            stripeAccountId: tenant.stripeAccountId, // Use the tenant’s Stripe account
+            unit_amount: product.price * 100, // Convert price to cents (required by Stripe)
+            currency: "mxn", // Currency set to MXN (can be made dynamic later)
+            product_data: {
+              name: product.name, // Product name shown in Stripe checkout
+              metadata: {
+                id: product.id, // Store product ID in metadata
+                name: product.name, // Store product name in metadata
+                price: product.price, // Store product price in metadata
+              } as ProductMetadata,
+            },
+          },
+        }));
+
+      // Create a new Stripe Checkout session
+      const checkout = await stripe.checkout.sessions.create({
+        customer_email: ctx.session.user.email, // Send receipt to the logged-in user’s email
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?success=true`, // Redirect URL on successful payment
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?cancel=true`, // Redirect URL if user cancels checkout
+        mode: "payment", // Use one-time payment mode
+        line_items: lineItems, // Add all mapped line items
+        invoice_creation: {
+          enabled: true, // Generate a Stripe invoice
+        },
+        metadata: {
+          userId: ctx.session.user.id, // Attach the user ID for tracking in Stripe
+        } as CheckoutMetadata,
+      });
+
+      // Validate that a checkout URL was returned from Stripe
+      if (!checkout.url) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create checkout session",
+        });
+      }
+
+      // Return the checkout session URL to the client so it can redirect
+      return {
+        url: checkout.url,
+      };
+    }),
+
   // getProducts - Fetches multiple products by their IDs and calculates total price
   getProducts: baseProcedure
     .input(
