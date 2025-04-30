@@ -5,6 +5,11 @@ export const Products: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/products)
   slug: "products",
 
+  // admin - Admin panel configuration
+  admin: {
+    useAsTitle: "name", // Display the 'name' field as the document title in admin UI
+  },
+
   // fields - Defines the schema/structure of the collection
   fields: [
     // name - The display name of the product (e.g., 'T-shirt', 'Laptop')
