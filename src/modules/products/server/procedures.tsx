@@ -4,7 +4,6 @@ import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { headers as getHeaders } from "next/headers";
 import { Sort, Where } from "payload";
 import { z } from "zod";
-
 import { sortValues } from "../search-params";
 
 // productsRouter - Defines product-related API procedures
