@@ -21,16 +21,13 @@ interface CartState {
 
   // Action to remove all carts across all tenants
   clearAllCarts: () => void;
-
-  // Selector to retrieve all product IDs in a specific tenant’s cart
-  getCartByTenant: (tenantSlug: string) => string[];
 }
 
 // useCartStore - Zustand store for managing multi-tenant shopping carts
 export const useCartStore = create<CartState>()(
   persist(
     // Apply persistence middleware to store data in localStorage
-    (set, get) => ({
+    (set) => ({
       tenantCarts: {}, // Initial state: no tenant carts exist yet
 
       // addProduct - Adds a product to a specific tenant's cart
@@ -74,10 +71,6 @@ export const useCartStore = create<CartState>()(
 
       // clearAllCarts - Wipes all tenant carts from the store
       clearAllCarts: () => set({ tenantCarts: {} }),
-
-      // getCartByTenant - Returns the product IDs in a specific tenant’s cart
-      getCartByTenant: (tenantSlug) =>
-        get().tenantCarts[tenantSlug]?.productIds || [], // Return product IDs or empty array
     }),
     {
       name: "funroad-cart", // Key used in localStorage to persist this store

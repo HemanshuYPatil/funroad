@@ -1,6 +1,7 @@
 import { DEFAULT_LIMIT } from "@/constants";
 import { Category, Media, Tenant } from "@/payload-types";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { headers as getHeaders } from "next/headers";
 import { Sort, Where } from "payload";
 import { z } from "zod";
 import { sortValues } from "../search-params";
@@ -15,6 +16,11 @@ export const productsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      // Get request headers using Next.js headers API
+      const headers = await getHeaders();
+      // Authenticate the user session using headers
+      const session = await ctx.db.auth({ headers });
+
       // Query the database for a product with the specified ID
       const product = await ctx.db.findByID({
         collection: "products", // Look in the products collection
@@ -22,9 +28,40 @@ export const productsRouter = createTRPCRouter({
         depth: 2, // Include related fields like image, category, tenant, tenant.image
       });
 
+      // Initialize purchase flag
+      let isPurchased = false;
+
+      // If the user is authenticated, check for matching purchase
+      if (session.user) {
+        // Query the orders collection to see if this product was purchased by the user
+        const ordersData = await ctx.db.find({
+          collection: "orders", // Target the orders collection
+          pagination: false, // Disable pagination since only one match is needed
+          limit: 1, // Limit to a single result
+          where: {
+            and: [
+              {
+                product: {
+                  equals: input.id, // Match the current product ID
+                },
+              },
+              {
+                user: {
+                  equals: session.user.id, // Match the current user ID
+                },
+              },
+            ],
+          },
+        });
+
+        // If a matching order exists, set isPurchased to true
+        isPurchased = !!ordersData.docs[0];
+      }
+
       // Return the product with relational fields properly cast
       return {
         ...product, // Spread base product fields
+        isPurchased, // Whether the current user has purchased the product
         image: product.image as Media | null, // Cast image field to Media or null to ensure consistent typing
         tenant: product.tenant as Tenant & { image: Media | null }, // Cast tenant to include an image field
       };
