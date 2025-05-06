@@ -52,6 +52,14 @@ export const libraryRouter = createTRPCRouter({
         id: input.productId, // Provide the product ID to fetch
       });
 
+      // If the product is not found in the database (e.g., deleted or invalid ID), throw a NOT_FOUND error
+      if (!product) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
+
       // Return the product
       return product;
     }),
