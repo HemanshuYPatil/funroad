@@ -2,7 +2,7 @@
 
 import { generateTenantURL } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InboxIcon, LoaderIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -27,6 +27,8 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
 
   // Access the tRPC client
   const trpc = useTRPC();
+  // Get the global React Query client instance
+  const queryClient = useQueryClient();
   // Fetch detailed product data for all products in the cart
   const { data, error, isLoading } = useQuery(
     trpc.checkout.getProducts.queryOptions({
@@ -64,11 +66,23 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
         success: false, // Reset success state to prevent re-trigger
         cancel: false, // Clear any cancel flag
       });
-      clearCart(); // Remove all products from cart
-      // TODO: Invalidate library
-      router.push("/products"); // Redirect to product listing page
+
+      clearCart(); // Remove all products from cart after successful purchase
+
+      // Invalidate cached queries related to the user's library to ensure fresh data
+      queryClient.invalidateQueries(trpc.library.getMany.infiniteQueryFilter());
+
+      // Redirect user to the library page
+      router.push("/library");
     }
-  }, [states.success, clearCart, router, setStates]);
+  }, [
+    states.success,
+    clearCart,
+    router,
+    setStates,
+    queryClient,
+    trpc.library.getMany,
+  ]);
 
   // Handle invalid product error by clearing cart and showing a warning
   useEffect(() => {

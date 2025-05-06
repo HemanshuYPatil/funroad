@@ -1,10 +1,69 @@
 import { DEFAULT_LIMIT } from "@/constants";
 import { Media, Tenant } from "@/payload-types";
 import { createTRPCRouter, protectedProcedures } from "@/trpc/init";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 // libraryRouter - Defines library-related API procedures for purchased products
 export const libraryRouter = createTRPCRouter({
+  // getOne - Fetches a single product purchased by the logged-in user
+  getOne: protectedProcedures
+    .input(
+      z.object({
+        productId: z.string(), // The ID of the product to fetch
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Query the orders collection to check if the current user has purchased the specified product
+      const ordersData = await ctx.db.find({
+        collection: "orders", // Target the "orders" collection
+        pagination: false, // Disable server-side pagination (we only need to check existence)
+        limit: 1, // Limit to 1 result for efficiency
+        where: {
+          and: [
+            {
+              product: {
+                equals: input.productId, // Filter by the specific product ID
+              },
+            },
+            {
+              user: {
+                equals: ctx.session.user.id, // Filter by the current user ID
+              },
+            },
+          ],
+        },
+      });
+
+      // Extract the first (and only) matching order, if it exists
+      const order = ordersData.docs[0];
+
+      // If the user has not purchased this product, throw a NOT_FOUND error
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Order not found",
+        });
+      }
+
+      // Query the products collection to fetch the full product details by ID
+      const product = await ctx.db.findByID({
+        collection: "products", // Target the "products" collection
+        id: input.productId, // Provide the product ID to fetch
+      });
+
+      // If the product is not found in the database (e.g., deleted or invalid ID), throw a NOT_FOUND error
+      if (!product) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
+
+      // Return the product
+      return product;
+    }),
+
   // getMany - Fetches products that have been purchased by the logged-in user
   getMany: protectedProcedures
     .input(
