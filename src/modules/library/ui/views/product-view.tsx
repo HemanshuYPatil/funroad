@@ -4,6 +4,7 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { ReviewSidebar } from "../components/review-sidebar";
 
 // ProductViewProps - Props required to render a single purchased product
 interface ProductViewProps {
@@ -41,11 +42,10 @@ export const ProductView = ({ productId }: ProductViewProps) => {
       {/* Main content area with layout grid */}
       <section className="max-w-(--breakpoint-xl) mx-auto px-4 lg:px-12 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 lg:gap-16">
-          {/* Sidebar column for future review-related UI */}
+          {/* Sidebar column for review sidebar */}
           <div className="lg:col-span-2">
             <div className="p-4 bg-white rounded-md border gap-4">
-              {/* NOTE: Still in progress - Review Sidebar functionality will be implemented here */}
-              TODO: Review Sidebar
+              <ReviewSidebar productId={productId} />
             </div>
           </div>
 

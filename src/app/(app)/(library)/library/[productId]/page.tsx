@@ -14,10 +14,17 @@ const Page = async ({ params }: PageProps) => {
   const { productId } = await params; // Await the dynamic route params
   const queryClient = getQueryClient(); // Initialize a new query client
 
-  // Prefetch purchased products using infinite query for library view
+  // Prefetch product details for the product view
   void queryClient.prefetchQuery(
     trpc.library.getOne.queryOptions({
-      productId, // Define how many items to fetch per page
+      productId,
+    })
+  );
+
+  // Prefetch review for the current product by the logged-in user
+  void queryClient.prefetchQuery(
+    trpc.reviews.getOne.queryOptions({
+      productId,
     })
   );
 
