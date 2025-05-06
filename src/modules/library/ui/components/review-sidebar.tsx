@@ -1,5 +1,6 @@
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { ReviewForm } from "./review-form";
 
 // ReviewSidebarProps - Props required to render the review form
 interface ReviewSidebarProps {
@@ -17,6 +18,6 @@ export const ReviewSidebar = ({ productId }: ReviewSidebarProps) => {
     })
   );
 
-  // TODO: Render the review form with prefilled data if any
-  return <div>Review form wip</div>;
+  // Render the review form with prefilled data if any
+  return <ReviewForm productId={productId} initialData={data} />;
 };
