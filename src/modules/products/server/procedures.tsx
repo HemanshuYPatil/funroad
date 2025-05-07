@@ -209,6 +209,7 @@ export const productsRouter = createTRPCRouter({
           return {
             ...doc, // Include original product data
             reviews: reviewsData.docs, // Attach all related reviews
+            reviewCount: reviewsData.docs.length, // Attach the number of reviews
             reviewRating: reviewsData.docs.length === 0 
               ? 0 // If no reviews, default to 0
               : reviewsData.docs.reduce((acc, review) => acc + review.rating, 0) / reviewsData.docs.length, // Average rating calculation
