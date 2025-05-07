@@ -11,6 +11,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
+import { toast } from "sonner";
 
 // CartButton - Dynamically import the CartButton component for client-side rendering only
 const CartButton = dynamic(
@@ -102,18 +103,20 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
               {/* Rating for desktop */}
               <div className="hidden lg:flex px-6 py-4 items-center justify-center">
-                <div className="flex items-center gap-1">
-                  <StarRating rating={4} iconClassName="size-4" />
+                <div className="flex items-center gap-2">
+                  <StarRating rating={data.reviewRating} iconClassName="size-4" />
+
+                  <p className="text-base font-medium">{data.reviewCount} ratings</p>
                 </div>
               </div>
             </div>
 
             {/* Rating for mobile */}
             <div className="block lg:hidden px-6 py-4 items-center justify-center border-b">
-              <div className="flex items-center gap-1">
-                <StarRating rating={4} iconClassName="size-4" />
+              <div className="flex items-center gap-2">
+                <StarRating rating={data.reviewRating} iconClassName="size-4" />
 
-                <p className="text-base font-medium">{5} ratings</p>
+                <p className="text-base font-medium">{data.reviewCount} ratings</p>
               </div>
             </div>
 
@@ -145,7 +148,10 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   <Button
                     variant={"elevated"}
                     className="size-12"
-                    onClick={() => {}}
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("Link copied to clipboard");
+                    }}
                     disabled={false}
                   >
                     <LinkIcon />
@@ -169,9 +175,9 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   <div className="flex items-center gap-x-1 font-medium">
                     <StarIcon className="size-4 fill-black" />
 
-                    <p>({5})</p>
+                    <p>({data.reviewRating})</p>
 
-                    <p className="text-base">{5} ratings</p>
+                    <p className="text-base">{data.reviewCount} ratings</p>
                   </div>
                 </div>
 
@@ -183,9 +189,9 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                         {stars} {stars === 1 ? "star" : "stars"}
                       </div>
 
-                      <Progress value={25} className="h-[1lh]" />
+                      <Progress value={data.ratingDistribution[stars]} className="h-[1lh]" />
 
-                      <div className="font-medium">{25}%</div>
+                      <div className="font-medium">{data.ratingDistribution[stars]}%</div>
                     </Fragment>
                   ))}
                 </div>
