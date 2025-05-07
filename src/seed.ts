@@ -1,5 +1,6 @@
 import config from "@payload-config";
 import { getPayload } from "payload";
+import { stripe } from "./lib/stripe";
 
 // Define an array of categories, each with optional subcategories and color
 const categories = [
@@ -142,6 +143,9 @@ const categories = [
 const seed = async () => {
   const payload = await getPayload({ config }); // Initialize Payload with the given config
 
+  // Create admin Stripe account
+  const adminAccount = await stripe.accounts.create({});
+
   // Create admin tenant
   // This is the root tenant used to isolate super-admin resources.
   // All system-level or tenant-agnostic features should be scoped under this tenant.
@@ -150,7 +154,7 @@ const seed = async () => {
     data: {
       name: "admin", // Human-readable name of the tenant
       slug: "admin", // Used for routing or subdomain mapping
-      stripeAccountId: "admin", // Placeholder Stripe account ID for the admin tenant
+      stripeAccountId: adminAccount.id, // Use the admin Stripe account ID
     },
   });
 
