@@ -191,10 +191,35 @@ export const productsRouter = createTRPCRouter({
         limit: input.limit, // Limit the number of results
       });
 
+      // Map over each product to attach summarized review data
+      const dataWithSummarizedReviews = await Promise.all(
+        data.docs.map(async (doc) => {
+          // Fetch all reviews related to the current product
+          const reviewsData = await ctx.db.find({
+            collection: "reviews", // Look in the reviews collection
+            pagination: false, // Fetch all matching reviews
+            where: {
+              product: {
+                equals: doc.id, // Match reviews by product ID
+              },
+            },
+          });
+
+          // Return the product along with its reviews and average rating
+          return {
+            ...doc, // Include original product data
+            reviews: reviewsData.docs, // Attach all related reviews
+            reviewRating: reviewsData.docs.length === 0 
+              ? 0 // If no reviews, default to 0
+              : reviewsData.docs.reduce((acc, review) => acc + review.rating, 0) / reviewsData.docs.length, // Average rating calculation
+          };
+        })
+      );
+
       // Return the final product list
       return {
         ...data, // Include all pagination and meta fields (e.g., totalDocs, limit, totalPages, etc.)
-        docs: data.docs.map((doc) => ({
+        docs: dataWithSummarizedReviews.map((doc) => ({
           ...doc, // Spread base product fields
           image: doc.image as Media | null, // Cast product image to Media or null to enforce proper type
           tenant: doc.tenant as Tenant & { image: Media | null }, // Cast tenant field to include image property
