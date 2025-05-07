@@ -58,12 +58,57 @@ export const productsRouter = createTRPCRouter({
         isPurchased = !!ordersData.docs[0];
       }
 
-      // Return the product with relational fields properly cast
+      // Fetch all reviews associated with the product
+      const reviews = await ctx.db.find({
+        collection: "reviews", // Look in the reviews collection
+        pagination: false, // Retrieve all matching reviews
+        where: {
+          product: { equals: input.id }, // Match reviews by product ID
+        },
+      });
+
+      // Calculate average review rating (default to 0 if no reviews)
+      const reviewRating = reviews.docs.length === 0 
+        ? 0 
+        : reviews.docs.reduce((acc, review) => acc + review.rating, 0) / reviews.docs.length;
+
+      // Initialize distribution map to track % of each star rating
+      const ratingDistribution: Record<number, number> = {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      };
+
+      // Count how many reviews exist per rating (1–5)
+      if (reviews.totalDocs > 0) {
+        reviews.docs.forEach((review) => {
+          const rating = review.rating;
+          
+          if (rating >= 1 && rating <= 5) {
+            ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
+          }
+        });
+
+        // Convert raw counts into percentages
+        Object.keys(ratingDistribution).forEach((key) => {
+          const rating = Number(key);
+          const count = ratingDistribution[rating] || 0;
+
+          ratingDistribution[rating] = Math.round((count / reviews.totalDocs) * 100);
+        });
+      }
+
+      // Return the product with relational and review fields properly cast
       return {
         ...product, // Spread base product fields
         isPurchased, // Whether the current user has purchased the product
         image: product.image as Media | null, // Cast image field to Media or null to ensure consistent typing
         tenant: product.tenant as Tenant & { image: Media | null }, // Cast tenant to include an image field
+        reviewRating, // Average rating across all reviews
+        reviewCount: reviews.totalDocs, // Total number of reviews
+        ratingDistribution, // Percentage distribution of each rating (1–5 stars)
       };
     }),
 
