@@ -1,9 +1,18 @@
+import { isSuperAdmin } from "@/lib/access";
 import type { CollectionConfig } from "payload";
 
 // Reviews - Collection configuration for storing product reviews by users
 export const Reviews: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/reviews)
   slug: "reviews",
+
+  // access - Access control configuration for the reviews collection
+  access: {
+    read: ({ req }) => isSuperAdmin(req.user), // Allow super admins to read
+    create: ({ req }) => isSuperAdmin(req.user), // Allow super admins to create
+    delete: ({ req }) => isSuperAdmin(req.user), // Allow super admins to delete
+    update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update
+  },
 
   // admin - Defines how this collection appears in the Payload admin panel
   admin: {

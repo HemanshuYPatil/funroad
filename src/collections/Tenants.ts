@@ -1,9 +1,17 @@
+import { isSuperAdmin } from "@/lib/access";
 import type { CollectionConfig } from "payload";
 
 // Tenants - Collection configuration for storing tenant/store details
 export const Tenants: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/tenants)
   slug: "tenants",
+
+  // access - Access control configuration for the tenants collection
+  access: {
+    read: () => true, // Allow all users to read
+    create: ({ req }) => isSuperAdmin(req.user), // Allow super admins to create
+    delete: ({ req }) => isSuperAdmin(req.user), // Allow super admins to delete
+  },
 
   // admin - Admin panel configuration
   admin: {
@@ -30,6 +38,9 @@ export const Tenants: CollectionConfig = {
       index: true, // Add database index for search performance
       required: true, // Must be provided
       unique: true, // Must be unique across all tenants
+      access: {
+        update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update
+      },
       admin: {
         description: "The subdomain of the store (e.g., [slug].funroad.com)", // Help text
       },
@@ -47,8 +58,11 @@ export const Tenants: CollectionConfig = {
       name: "stripeAccountId", // Field name
       type: "text", // Text input field
       required: true, // Must be provided
+      access: {
+        update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update
+      },
       admin: {
-        readOnly: true, // Cannot be modified from the admin UI
+        description: "Stripe Account ID associated with your shop", // Help text
       },
     },
 
@@ -56,8 +70,10 @@ export const Tenants: CollectionConfig = {
     {
       name: "stripeDetailsSubmitted", // Field name
       type: "checkbox", // Boolean toggle input
+      access: {
+        update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update
+      },
       admin: {
-        readOnly: true, // Cannot be edited manually
         description:
           "You cannot create products until you’ve submitted your Stripe details.", // Help text
       },

@@ -1,3 +1,4 @@
+import { isSuperAdmin } from "@/lib/access";
 import type { CollectionConfig } from "payload";
 
 // Categories - Collection configuration for storing hierarchical product categories
@@ -5,9 +6,18 @@ export const Categories: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/categories)
   slug: "categories",
 
+  // access - Access control configuration for the categories collection
+  access: {
+    read: () => true, // Allow all users to read
+    create: ({ req }) => isSuperAdmin(req.user), // Allow super admins to create
+    delete: ({ req }) => isSuperAdmin(req.user), // Allow super admins to delete
+    update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update
+  },
+
   // admin - Defines how this collection appears in the Payload admin panel
   admin: {
     useAsTitle: "name", // Display 'name' as the label in the admin panel
+    hidden: ({ user }) => !isSuperAdmin(user), // Hide the categories collection from non-super admins
   },
 
   // fields - Defines the schema/structure of the collection

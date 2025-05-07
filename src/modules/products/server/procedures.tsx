@@ -26,6 +26,9 @@ export const productsRouter = createTRPCRouter({
         collection: "products", // Look in the products collection
         id: input.id, // Use the provided ID to find the product
         depth: 2, // Include related fields like image, category, tenant, tenant.image
+        select: {
+          content: false, // Exclude the content field from the results
+        },
       });
 
       // Initialize purchase flag
@@ -68,9 +71,11 @@ export const productsRouter = createTRPCRouter({
       });
 
       // Calculate average review rating (default to 0 if no reviews)
-      const reviewRating = reviews.docs.length === 0 
-        ? 0 
-        : reviews.docs.reduce((acc, review) => acc + review.rating, 0) / reviews.docs.length;
+      const reviewRating =
+        reviews.docs.length === 0
+          ? 0
+          : reviews.docs.reduce((acc, review) => acc + review.rating, 0) /
+            reviews.docs.length;
 
       // Initialize distribution map to track % of each star rating
       const ratingDistribution: Record<number, number> = {
@@ -85,7 +90,7 @@ export const productsRouter = createTRPCRouter({
       if (reviews.totalDocs > 0) {
         reviews.docs.forEach((review) => {
           const rating = review.rating;
-          
+
           if (rating >= 1 && rating <= 5) {
             ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
           }
@@ -96,7 +101,9 @@ export const productsRouter = createTRPCRouter({
           const rating = Number(key);
           const count = ratingDistribution[rating] || 0;
 
-          ratingDistribution[rating] = Math.round((count / reviews.totalDocs) * 100);
+          ratingDistribution[rating] = Math.round(
+            (count / reviews.totalDocs) * 100
+          );
         });
       }
 
@@ -231,9 +238,12 @@ export const productsRouter = createTRPCRouter({
         collection: "products", // Query the products collection
         depth: 2, // Include relational fields (like images, category, tenant, tenant.image etc.)
         where, // Apply the category filter (if any)
-        sort,
+        sort, // Apply the sort order
         page: input.cursor, // Set the pagination cursor
         limit: input.limit, // Limit the number of results
+        select: {
+          content: false, // Exclude the content field from the results
+        },
       });
 
       // Map over each product to attach summarized review data
@@ -255,9 +265,13 @@ export const productsRouter = createTRPCRouter({
             ...doc, // Include original product data
             reviews: reviewsData.docs, // Attach all related reviews
             reviewCount: reviewsData.docs.length, // Attach the number of reviews
-            reviewRating: reviewsData.docs.length === 0 
-              ? 0 // If no reviews, default to 0
-              : reviewsData.docs.reduce((acc, review) => acc + review.rating, 0) / reviewsData.docs.length, // Average rating calculation
+            reviewRating:
+              reviewsData.docs.length === 0
+                ? 0 // If no reviews, default to 0
+                : reviewsData.docs.reduce(
+                    (acc, review) => acc + review.rating,
+                    0
+                  ) / reviewsData.docs.length, // Average rating calculation
           };
         })
       );

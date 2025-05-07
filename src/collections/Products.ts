@@ -1,9 +1,25 @@
+import { isSuperAdmin } from "@/lib/access";
+import { Tenant } from "@/payload-types";
 import type { CollectionConfig } from "payload";
 
 // Products - Collection configuration for storing product entries
 export const Products: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/products)
   slug: "products",
+
+  // access - Access control configuration for the products collection
+  access: {
+    create: ({ req }) => {
+      // If the user is a super admin, allow them to create products
+      if (isSuperAdmin(req.user)) return true;
+
+      // Get the tenant from the user
+      const tenant = req.user?.tenants?.[0]?.tenant as Tenant;
+
+      // Check if the tenant has submitted their stripe details
+      return Boolean(tenant?.stripeDetailsSubmitted);
+    },
+  },
 
   // admin - Admin panel configuration
   admin: {
@@ -65,6 +81,16 @@ export const Products: CollectionConfig = {
       type: "select", // Dropdown select field
       options: ["30-day", "14-day", "7-day", "3-day", "1-day", "no-refunds"], // Allowed refund options
       defaultValue: "30-day", // Default refund policy
+    },
+
+    // content - Protected content only visible to customers after purchase
+    {
+      name: "content", // Field name
+      type: "textarea", // Textarea field
+      admin: {
+        description:
+          "Protected content only visible to customers after purchase. Add product documentation, downloadables files, getting started guides, and bonus materials. Support markdown formatting.", // Help text shown in the admin UI
+      },
     },
   ],
 };
