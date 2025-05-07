@@ -38,6 +38,9 @@ export const Tenants: CollectionConfig = {
       index: true, // Add database index for search performance
       required: true, // Must be provided
       unique: true, // Must be unique across all tenants
+      access: {
+        update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update
+      },
       admin: {
         description: "The subdomain of the store (e.g., [slug].funroad.com)", // Help text
       },
