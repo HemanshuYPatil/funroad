@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Button } from "./ui/button";
+import { Button, Link } from "@payloadcms/ui";
 
 // StripeVerify - Renders a button linking to the Stripe account verification page
 export const StripeVerify = () => {
