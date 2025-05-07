@@ -1,9 +1,18 @@
+import { isSuperAdmin } from "@/lib/access";
 import type { CollectionConfig } from "payload";
 
 // Orders - Collection configuration for storing order records
 export const Orders: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/orders)
   slug: "orders",
+
+  // access - Access control configuration for the orders collection
+  access: {
+    read: ({ req }) => isSuperAdmin(req.user), // Allow super admins to read
+    create: ({ req }) => isSuperAdmin(req.user), // Allow super admins to create
+    delete: ({ req }) => isSuperAdmin(req.user), // Allow super admins to delete
+    update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update
+  },
 
   // admin - Admin panel configuration
   admin: {
@@ -42,6 +51,9 @@ export const Orders: CollectionConfig = {
       name: "stripeCheckoutSessionId", // Field name
       type: "text", // Text input field
       required: true, // Must be provided
+      admin: {
+        description: "Stripe checkout session associated with this order", // Help text shown in the admin UI
+      },
     },
   ],
 };
