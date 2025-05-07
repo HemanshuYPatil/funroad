@@ -12,6 +12,62 @@ import { CheckoutMetadata, ProductMetadata } from "../types";
 
 // checkoutRouter - Defines checkout-related API procedures
 export const checkoutRouter = createTRPCRouter({
+  // verify - Generates a Stripe account onboarding link for the current user's tenant
+  verify: protectedProcedures.mutation(async ({ ctx }) => {
+    // Fetch the full user document using their session ID (depth: 0 returns raw ID refs)
+    const user = await ctx.db.findByID({
+      collection: "users", // Collection name to query
+      id: ctx.session.user.id, // User ID to fetch
+      depth: 0, // Fetch only the user document (no related fields)
+    });
+
+    // Throw an error if the user record is not found
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    // Extract the first tenant ID associated with the user
+    const tenantId = user.tenants?.[0]?.tenant as string;
+
+    // Fetch the tenant document using the extracted tenant ID
+    const tenant = await ctx.db.findByID({
+      collection: "tenants", // Collection name to query
+      id: tenantId, // Tenant ID to fetch
+    });
+
+    // Throw an error if the tenant does not exist
+    if (!tenant) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Tenant not found",
+      });
+    }
+
+    // Create a Stripe account onboarding link for the tenant
+    const accountLink = await stripe.accountLinks.create({
+      account: tenant.stripeAccountId as string, // Stripe account ID for the tenant
+      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL!}/admin`, // Redirect here if onboarding is canceled
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL!}/admin`, // Redirect here after successful onboarding
+      type: "account_onboarding", // Type of link: onboarding flow
+    });
+
+    // Throw an error if the link creation fails
+    if (!accountLink) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Account link failed",
+      });
+    }
+
+    // Return the Stripe onboarding URL to the client
+    return {
+      url: accountLink.url,
+    };
+  }),
+
   // purchase - Creates a Stripe Checkout session for purchasing specified products from a tenant
   purchase: protectedProcedures
     .input(
