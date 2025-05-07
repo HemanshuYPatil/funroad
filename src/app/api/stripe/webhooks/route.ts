@@ -37,7 +37,10 @@ export async function POST(req: Request) {
   console.log("✅ Success:", event.id); // Log verified event ID
 
   // Define which event types this handler cares about
-  const permittedEvents: string[] = ["checkout.session.completed"];
+  const permittedEvents: string[] = [
+    "checkout.session.completed",
+    "account.updated",
+  ];
 
   // Initialize Payload CMS instance
   const payload = await getPayload({ config });
@@ -101,6 +104,24 @@ export async function POST(req: Request) {
             });
           }
 
+          break;
+
+        // Handle Stripe account updates
+        case "account.updated":
+          data = event.data.object as Stripe.Account;
+
+          // Update the tenant record whose Stripe account ID matches the updated account
+          await payload.update({
+            collection: "tenants",
+            where: {
+              stripeAccountId: {
+                equals: data.id, // Match tenant by Stripe account ID
+              },
+            },
+            data: {
+              stripeDetailsSubmitted: data.details_submitted, // Update the verification status
+            },
+          });
           break;
 
         // Catch-all for unhandled events (shouldn't occur due to filter)
