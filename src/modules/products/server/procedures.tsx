@@ -58,12 +58,57 @@ export const productsRouter = createTRPCRouter({
         isPurchased = !!ordersData.docs[0];
       }
 
-      // Return the product with relational fields properly cast
+      // Fetch all reviews associated with the product
+      const reviews = await ctx.db.find({
+        collection: "reviews", // Look in the reviews collection
+        pagination: false, // Retrieve all matching reviews
+        where: {
+          product: { equals: input.id }, // Match reviews by product ID
+        },
+      });
+
+      // Calculate average review rating (default to 0 if no reviews)
+      const reviewRating = reviews.docs.length === 0 
+        ? 0 
+        : reviews.docs.reduce((acc, review) => acc + review.rating, 0) / reviews.docs.length;
+
+      // Initialize distribution map to track % of each star rating
+      const ratingDistribution: Record<number, number> = {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      };
+
+      // Count how many reviews exist per rating (1–5)
+      if (reviews.totalDocs > 0) {
+        reviews.docs.forEach((review) => {
+          const rating = review.rating;
+          
+          if (rating >= 1 && rating <= 5) {
+            ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
+          }
+        });
+
+        // Convert raw counts into percentages
+        Object.keys(ratingDistribution).forEach((key) => {
+          const rating = Number(key);
+          const count = ratingDistribution[rating] || 0;
+
+          ratingDistribution[rating] = Math.round((count / reviews.totalDocs) * 100);
+        });
+      }
+
+      // Return the product with relational and review fields properly cast
       return {
         ...product, // Spread base product fields
         isPurchased, // Whether the current user has purchased the product
         image: product.image as Media | null, // Cast image field to Media or null to ensure consistent typing
         tenant: product.tenant as Tenant & { image: Media | null }, // Cast tenant to include an image field
+        reviewRating, // Average rating across all reviews
+        reviewCount: reviews.totalDocs, // Total number of reviews
+        ratingDistribution, // Percentage distribution of each rating (1–5 stars)
       };
     }),
 
@@ -191,10 +236,36 @@ export const productsRouter = createTRPCRouter({
         limit: input.limit, // Limit the number of results
       });
 
+      // Map over each product to attach summarized review data
+      const dataWithSummarizedReviews = await Promise.all(
+        data.docs.map(async (doc) => {
+          // Fetch all reviews related to the current product
+          const reviewsData = await ctx.db.find({
+            collection: "reviews", // Look in the reviews collection
+            pagination: false, // Fetch all matching reviews
+            where: {
+              product: {
+                equals: doc.id, // Match reviews by product ID
+              },
+            },
+          });
+
+          // Return the product along with its reviews and average rating
+          return {
+            ...doc, // Include original product data
+            reviews: reviewsData.docs, // Attach all related reviews
+            reviewCount: reviewsData.docs.length, // Attach the number of reviews
+            reviewRating: reviewsData.docs.length === 0 
+              ? 0 // If no reviews, default to 0
+              : reviewsData.docs.reduce((acc, review) => acc + review.rating, 0) / reviewsData.docs.length, // Average rating calculation
+          };
+        })
+      );
+
       // Return the final product list
       return {
         ...data, // Include all pagination and meta fields (e.g., totalDocs, limit, totalPages, etc.)
-        docs: data.docs.map((doc) => ({
+        docs: dataWithSummarizedReviews.map((doc) => ({
           ...doc, // Spread base product fields
           image: doc.image as Media | null, // Cast product image to Media or null to enforce proper type
           tenant: doc.tenant as Tenant & { image: Media | null }, // Cast tenant field to include image property

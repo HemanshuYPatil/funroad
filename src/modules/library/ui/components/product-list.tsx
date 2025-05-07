@@ -51,8 +51,8 @@ export const ProductList = () => {
               imageUrl={product.image?.url} // Optional product image
               tenantSlug={product.tenant?.slug} // Tenant (store) identifier
               tenantImageUrl={product.tenant?.image?.url} // Optional tenant/store image
-              reviewRating={3} // Placeholder review rating (mock)
-              reviewCount={5} // Placeholder review count (mock)
+              reviewRating={product.reviewRating} // Review rating
+              reviewCount={product.reviewCount} // Review count
             />
           ))}
       </div>

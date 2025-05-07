@@ -73,8 +73,8 @@ export const ProductList = ({
               imageUrl={product.image?.url}
               tenantSlug={product.tenant?.slug}
               tenantImageUrl={product.tenant?.image?.url}
-              reviewRating={3} // Placeholder review rating
-              reviewCount={5} // Placeholder review count
+              reviewRating={product.reviewRating}
+              reviewCount={product.reviewCount}
               price={product.price}
             />
           ))}
