@@ -1,22 +1,21 @@
 import { tenantsArrayField } from "@payloadcms/plugin-multi-tenant/fields";
 import type { CollectionConfig } from "payload";
-
+import { isSuperAdmin } from "../lib/access";
 // Create default tenant array field configuration
 const defaultTenantArrayField = tenantsArrayField({
   tenantsArrayFieldName: "tenants", // Name of the array field storing tenant data
   tenantsCollectionSlug: "tenants", // Slug of the tenants collection
   tenantsArrayTenantFieldName: "tenant", // Field name used within each array item to reference a tenant
 
-  // NOTE: All access rules are set to true for testing purposes
   arrayFieldAccess: {
     read: () => true, // Allow reading tenant array
-    create: () => true, // Allow creating tenant array items
-    update: () => true, // Allow updating tenant array items
+    create: ({ req }) => isSuperAdmin(req.user), // Allow admin to create tenant array items
+    update: ({ req }) => isSuperAdmin(req.user), // Allow admin to update tenant array items
   },
   tenantFieldAccess: {
     read: () => true, // Allow reading individual tenant field
-    create: () => true, // Allow creating tenant field
-    update: () => true, // Allow updating tenant field
+    create: ({ req }) => isSuperAdmin(req.user), // Allow admin to create tenant field
+    update: ({ req }) => isSuperAdmin(req.user), // Allow admin to update tenant field
   },
 });
 
@@ -25,9 +24,24 @@ export const Users: CollectionConfig = {
   // slug - Used as the API endpoint path (e.g., /api/users)
   slug: "users",
 
+  // access - Access control configuration for the users collection
+  access: {
+    read: () => true, // Allow all users to read
+    create: ({ req }) => isSuperAdmin(req.user), // Allow super admins to create
+    delete: ({ req }) => isSuperAdmin(req.user), // Allow super admins to delete
+    update: ({ req, id }) => {
+      // If the user is a super admin, allow them to update any user
+      if (isSuperAdmin(req.user)) return true;
+
+      // If the user is not a super admin, allow them to update their own user
+      return req.user?.id === id;
+    },
+  },
+
   // admin - Admin panel configuration
   admin: {
     useAsTitle: "email", // Display the email field as the document title in admin UI
+    hidden: ({ user }) => !isSuperAdmin(user), // Hide the users collection from non-super admins
   },
 
   auth: true, // Enables authentication for this collection
@@ -54,6 +68,9 @@ export const Users: CollectionConfig = {
       options: ["super-admin", "user"], // Available role options
       admin: {
         position: "sidebar", // Display in the admin sidebar
+      },
+      access: {
+        update: ({ req }) => isSuperAdmin(req.user), // Allow super admins to update roles
       },
     },
 
