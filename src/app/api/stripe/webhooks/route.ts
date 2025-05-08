@@ -76,6 +76,9 @@ export async function POST(req: Request) {
             data.id,
             {
               expand: ["line_items.data.price.product"], // Expand products in line items
+            },
+            {
+              stripeAccount: event.account, // Specify the Stripe account to use
             }
           );
 
