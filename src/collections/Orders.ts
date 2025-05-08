@@ -55,5 +55,14 @@ export const Orders: CollectionConfig = {
         description: "Stripe checkout session associated with this order", // Help text shown in the admin UI
       },
     },
+
+    // stripeAccountId - Identifier for the Stripe account
+    {
+      name: "stripeAccountId", // Field name
+      type: "text", // Text input field
+      admin: {
+        description: "Stripe account associated with this order", // Help text shown in the admin UI
+      },
+    },
   ],
 };

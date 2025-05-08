@@ -24,6 +24,7 @@ export const Products: CollectionConfig = {
   // admin - Admin panel configuration
   admin: {
     useAsTitle: "name", // Display the 'name' field as the document title in admin UI
+    description: "You must verify your account before you can create products.", // Help text shown in the admin UI
   },
 
   // fields - Defines the schema/structure of the collection

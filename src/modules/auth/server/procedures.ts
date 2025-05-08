@@ -1,3 +1,4 @@
+import { stripe } from "@/lib/stripe";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { headers as getHeaders } from "next/headers";
@@ -41,13 +42,24 @@ export const authRouter = createTRPCRouter({
         });
       }
 
+      // Create a new Stripe account for the user
+      const account = await stripe.accounts.create({});
+
+      // If the Stripe account creation fails, throw an error
+      if (!account) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create Stripe account",
+        });
+      }
+
       // Create a new tenant for the user
       const tenant = await ctx.db.create({
         collection: "tenants",
         data: {
           name: input.username, // Use username for tenant name
           slug: input.username, // Use username for slug to match subdomain
-          stripeAccountId: "test", // Stub value for Stripe ID (adjust in production)
+          stripeAccountId: account.id, // Use the Stripe account ID
         },
       });
 

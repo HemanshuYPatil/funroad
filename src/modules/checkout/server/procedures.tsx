@@ -1,3 +1,4 @@
+import { PLATFORM_FEE_PERCENTAGE } from "@/constants";
 import { stripe } from "@/lib/stripe";
 import { Media, Tenant } from "@/payload-types";
 import {
@@ -12,6 +13,62 @@ import { CheckoutMetadata, ProductMetadata } from "../types";
 
 // checkoutRouter - Defines checkout-related API procedures
 export const checkoutRouter = createTRPCRouter({
+  // verify - Generates a Stripe account onboarding link for the current user's tenant
+  verify: protectedProcedures.mutation(async ({ ctx }) => {
+    // Fetch the full user document using their session ID (depth: 0 returns raw ID refs)
+    const user = await ctx.db.findByID({
+      collection: "users", // Collection name to query
+      id: ctx.session.user.id, // User ID to fetch
+      depth: 0, // Fetch only the user document (no related fields)
+    });
+
+    // Throw an error if the user record is not found
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    // Extract the first tenant ID associated with the user
+    const tenantId = user.tenants?.[0]?.tenant as string;
+
+    // Fetch the tenant document using the extracted tenant ID
+    const tenant = await ctx.db.findByID({
+      collection: "tenants", // Collection name to query
+      id: tenantId, // Tenant ID to fetch
+    });
+
+    // Throw an error if the tenant does not exist
+    if (!tenant) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Tenant not found",
+      });
+    }
+
+    // Create a Stripe account onboarding link for the tenant
+    const accountLink = await stripe.accountLinks.create({
+      account: tenant.stripeAccountId as string, // Stripe account ID for the tenant
+      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL!}/admin`, // Redirect here if onboarding is canceled
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL!}/admin`, // Redirect here after successful onboarding
+      type: "account_onboarding", // Type of link: onboarding flow
+    });
+
+    // Throw an error if the link creation fails
+    if (!accountLink) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Account link failed",
+      });
+    }
+
+    // Return the Stripe onboarding URL to the client
+    return {
+      url: accountLink.url,
+    };
+  }),
+
   // purchase - Creates a Stripe Checkout session for purchasing specified products from a tenant
   purchase: protectedProcedures
     .input(
@@ -61,8 +118,13 @@ export const checkoutRouter = createTRPCRouter({
         });
       }
 
-      // NOTE: Add explicit check here to ensure tenant has a Stripe account ID configured
-      // if (!tenant.stripeAccountId) throw new TRPCError({ ... });
+      // Throw error if the tenant does not have a Stripe account ID configured
+      if (!tenant.stripeAccountId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Tenant not allowed to sell products ",
+        });
+      }
 
       // Construct line items for each product to be used in the checkout session
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
@@ -83,20 +145,38 @@ export const checkoutRouter = createTRPCRouter({
           },
         }));
 
-      // Create a new Stripe Checkout session
-      const checkout = await stripe.checkout.sessions.create({
-        customer_email: ctx.session.user.email, // Send receipt to the logged-in user’s email
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?success=true`, // Redirect URL on successful payment
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?cancel=true`, // Redirect URL if user cancels checkout
-        mode: "payment", // Use one-time payment mode
-        line_items: lineItems, // Add all mapped line items
-        invoice_creation: {
-          enabled: true, // Generate a Stripe invoice
+      // Calculate the total price of all products (in cents)
+      const totalAmount = products.docs.reduce((acc, item) => {
+        return acc + item.price * 100;
+      }, 0);
+
+      // Calculate platform fee based on a percentage of total amount
+      const platformFeeAmount = Math.round(
+        totalAmount * (PLATFORM_FEE_PERCENTAGE / 100)
+      );
+
+      // Create a new Stripe Checkout session using tenant's connected account
+      const checkout = await stripe.checkout.sessions.create(
+        {
+          customer_email: ctx.session.user.email, // Send receipt to the logged-in user’s email
+          success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?success=true`, // Redirect URL on successful payment
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?cancel=true`, // Redirect URL if user cancels checkout
+          mode: "payment", // Use one-time payment mode
+          line_items: lineItems, // Add all mapped line items
+          invoice_creation: {
+            enabled: true, // Generate a Stripe invoice
+          },
+          metadata: {
+            userId: ctx.session.user.id, // Attach the user ID for tracking in Stripe
+          } as CheckoutMetadata,
+          payment_intent_data: {
+            application_fee_amount: platformFeeAmount, // Apply platform fee
+          },
         },
-        metadata: {
-          userId: ctx.session.user.id, // Attach the user ID for tracking in Stripe
-        } as CheckoutMetadata,
-      });
+        {
+          stripeAccount: tenant.stripeAccountId, // Specify the Stripe account to use
+        }
+      );
 
       // Validate that a checkout URL was returned from Stripe
       if (!checkout.url) {
