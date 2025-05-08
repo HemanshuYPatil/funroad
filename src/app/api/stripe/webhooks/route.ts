@@ -100,6 +100,7 @@ export async function POST(req: Request) {
               collection: "orders",
               data: {
                 stripeCheckoutSessionId: data.id, // Stripe session ID
+                stripeAccountId: event.account, // Stripe account ID
                 user: user.id, // ID of the purchasing user
                 product: item.price.product.metadata.id, // Product ID from metadata
                 name: item.price.product.name, // Product name
