@@ -190,3 +190,30 @@ export const ReviewForm = ({ productId, initialData }: ReviewFormProps) => {
     </Form>
   );
 };
+
+// ReviewFormSkeleton - Displays a non-interactive skeleton version of the review form
+export const ReviewFormSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-y-4">
+      {/* Static form header */}
+      <p className="font-medium">Liked it? Give it a rating</p>
+
+      {/* Disabled star rating input */}
+      <StarPicker disabled />
+
+      {/* Disabled textarea for review description */}
+      <Textarea placeholder="Want to leave a written review?" disabled />
+
+      {/* Disabled submit button */}
+      <Button
+        variant={"elevated"}
+        disabled
+        type="button"
+        size={"lg"}
+        className="bg-black text-white hover:bg-pink-400 hover:text-primary w-fit"
+      >
+        Post review
+      </Button>
+    </div>
+  );
+};

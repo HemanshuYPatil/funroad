@@ -5,6 +5,8 @@ import { RichText } from "@payloadcms/richtext-lexical/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { ReviewFormSkeleton } from "../components/review-form";
 import { ReviewSidebar } from "../components/review-sidebar";
 
 // ProductViewProps - Props required to render a single purchased product
@@ -46,7 +48,9 @@ export const ProductView = ({ productId }: ProductViewProps) => {
           {/* Sidebar column for review sidebar */}
           <div className="lg:col-span-2">
             <div className="p-4 bg-white rounded-md border gap-4">
-              <ReviewSidebar productId={productId} />
+              <Suspense fallback={<ReviewFormSkeleton />}>
+                <ReviewSidebar productId={productId} />
+              </Suspense>
             </div>
           </div>
 
