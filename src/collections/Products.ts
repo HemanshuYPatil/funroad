@@ -19,6 +19,7 @@ export const Products: CollectionConfig = {
       // Check if the tenant has submitted their stripe details
       return Boolean(tenant?.stripeDetailsSubmitted);
     },
+    delete: ({ req }) => isSuperAdmin(req.user), // Only super admins can delete products
   },
 
   // admin - Admin panel configuration
@@ -91,6 +92,16 @@ export const Products: CollectionConfig = {
       admin: {
         description:
           "Protected content only visible to customers after purchase. Add product documentation, downloadables files, getting started guides, and bonus materials. Support markdown formatting.", // Help text shown in the admin UI
+      },
+    },
+
+    {
+      name: "isArchived", // Field name
+      label: "Archive", // Label displayed in the admin UI
+      defaultValue: false, // Default value
+      type: "checkbox", // Checkbox input type
+      admin: {
+        description: "If checked, this product will be archived.", // Help text shown in the admin UI
       },
     },
   ],
