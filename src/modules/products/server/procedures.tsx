@@ -192,6 +192,11 @@ export const productsRouter = createTRPCRouter({
         where["tenant.slug"] = {
           equals: input.tenantSlug, // Match products belonging to a specific tenant
         };
+      } else {
+        // If we are loading products for public storefront, we need to exclude private products
+        where["isPrivate"] = {
+          not_equals: true, // Match products that are not private
+        };
       }
 
       // If a category slug is provided in the input
