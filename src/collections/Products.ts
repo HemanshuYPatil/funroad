@@ -95,6 +95,18 @@ export const Products: CollectionConfig = {
       },
     },
 
+    // isPrivate - Checkbox to make the product private
+    {
+      name: "isPrivate", // Field name
+      type: "checkbox", // Checkbox input type
+      defaultValue: false, // Default value
+      admin: {
+        description:
+          "If checked, this product will not be shown on the public storefront.", // Help text shown in the admin UI
+      },
+    },
+
+    // isArchived - Checkbox to archive the product
     {
       name: "isArchived", // Field name
       label: "Archive", // Label displayed in the admin UI
