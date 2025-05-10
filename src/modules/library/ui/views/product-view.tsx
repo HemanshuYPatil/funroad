@@ -1,6 +1,7 @@
 "use client"; // Enables client-side rendering
 
 import { useTRPC } from "@/trpc/client";
+import { RichText } from "@payloadcms/richtext-lexical/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
@@ -52,7 +53,7 @@ export const ProductView = ({ productId }: ProductViewProps) => {
           {/* Main column for product-specific content */}
           <div className="lg:col-span-5">
             {data.content ? (
-              <p>{data.content}</p>
+              <RichText data={data.content} />
             ) : (
               <p className="font-medium italic text-muted-foreground">
                 No special content

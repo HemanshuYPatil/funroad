@@ -91,7 +91,7 @@ export const Products: CollectionConfig = {
       type: "richText", // Rich text input field
       admin: {
         description:
-          "Protected content only visible to customers after purchase. Add product documentation, downloadables files, getting started guides, and bonus materials. Support markdown formatting.", // Help text shown in the admin UI
+          "Protected content only visible to customers after purchase. Add product documentation, downloadable files, getting started guides, and bonus materials. Support markdown formatting.", // Help text shown in the admin UI
       },
     },
 
