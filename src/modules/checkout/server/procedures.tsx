@@ -218,12 +218,18 @@ export const checkoutRouter = createTRPCRouter({
         collection: "products", // Collection name to query
         depth: 2, // Fetch related fields like image, tenant, tenant.image, etc.
         where: {
-          id: {
-            in: input.ids, // Match products by IDs provided in input
-          },
-          isArchived: {
-            not_equals: true, // Match by isArchived field
-          },
+          and: [
+            {
+              id: {
+                in: input.ids, // Match products by IDs provided in input
+              },
+            },
+            {
+              isArchived: {
+                not_equals: true, // Match by isArchived field
+              },
+            },
+          ],
         },
       });
 
