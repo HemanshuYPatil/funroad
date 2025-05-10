@@ -40,7 +40,7 @@ export const Products: CollectionConfig = {
     // description - Short text describing the product
     {
       name: "description", // Field name
-      type: "text", // Text input field
+      type: "richText", // Rich text input field
     },
 
     // price - Numeric value representing the cost of the product
@@ -88,7 +88,7 @@ export const Products: CollectionConfig = {
     // content - Protected content only visible to customers after purchase
     {
       name: "content", // Field name
-      type: "textarea", // Textarea field
+      type: "richText", // Rich text input field
       admin: {
         description:
           "Protected content only visible to customers after purchase. Add product documentation, downloadables files, getting started guides, and bonus materials. Support markdown formatting.", // Help text shown in the admin UI
