@@ -19,6 +19,7 @@ export const Products: CollectionConfig = {
       // Check if the tenant has submitted their stripe details
       return Boolean(tenant?.stripeDetailsSubmitted);
     },
+    delete: ({ req }) => isSuperAdmin(req.user), // Only super admins can delete products
   },
 
   // admin - Admin panel configuration
@@ -39,7 +40,7 @@ export const Products: CollectionConfig = {
     // description - Short text describing the product
     {
       name: "description", // Field name
-      type: "text", // Text input field
+      type: "richText", // Rich text input field
     },
 
     // price - Numeric value representing the cost of the product
@@ -87,10 +88,32 @@ export const Products: CollectionConfig = {
     // content - Protected content only visible to customers after purchase
     {
       name: "content", // Field name
-      type: "textarea", // Textarea field
+      type: "richText", // Rich text input field
       admin: {
         description:
-          "Protected content only visible to customers after purchase. Add product documentation, downloadables files, getting started guides, and bonus materials. Support markdown formatting.", // Help text shown in the admin UI
+          "Protected content only visible to customers after purchase. Add product documentation, downloadable files, getting started guides, and bonus materials. Support markdown formatting.", // Help text shown in the admin UI
+      },
+    },
+
+    // isPrivate - Checkbox to make the product private
+    {
+      name: "isPrivate", // Field name
+      type: "checkbox", // Checkbox input type
+      defaultValue: false, // Default value
+      admin: {
+        description:
+          "If checked, this product will not be shown on the public storefront.", // Help text shown in the admin UI
+      },
+    },
+
+    // isArchived - Checkbox to archive the product
+    {
+      name: "isArchived", // Field name
+      label: "Archive", // Label displayed in the admin UI
+      defaultValue: false, // Default value
+      type: "checkbox", // Checkbox input type
+      admin: {
+        description: "If checked, this product will be archived.", // Help text shown in the admin UI
       },
     },
   ],
