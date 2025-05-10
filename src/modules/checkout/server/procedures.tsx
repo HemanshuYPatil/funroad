@@ -84,8 +84,21 @@ export const checkoutRouter = createTRPCRouter({
         depth: 2, // Fetch related fields (e.g., tenant, image)
         where: {
           and: [
-            { id: { in: input.productIds } }, // Match product IDs
-            { "tenant.slug": { equals: input.tenantSlug } }, // Match by tenant slug
+            {
+              id: {
+                in: input.productIds,
+              },
+            }, // Match product IDs
+            {
+              "tenant.slug": {
+                equals: input.tenantSlug,
+              },
+            }, // Match by tenant slug
+            {
+              isArchived: {
+                not_equals: true,
+              },
+            }, // Match by isArchived field
           ],
         },
       });
@@ -207,6 +220,9 @@ export const checkoutRouter = createTRPCRouter({
         where: {
           id: {
             in: input.ids, // Match products by IDs provided in input
+          },
+          isArchived: {
+            not_equals: true, // Match by isArchived field
           },
         },
       });
