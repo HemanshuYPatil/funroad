@@ -1,6 +1,10 @@
-import { ProductView } from "@/modules/library/ui/views/product-view";
+import {
+  ProductView,
+  ProductViewSkeleton,
+} from "@/modules/library/ui/views/product-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { Suspense } from "react";
 
 // PageProps - Expected route parameters for the product page
 interface PageProps {
@@ -31,7 +35,11 @@ const Page = async ({ params }: PageProps) => {
   return (
     // Wraps server-side data for hydration on client
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <ProductView productId={productId} />
+      <Suspense fallback={<ProductViewSkeleton />}>
+        {/* Displays detailed product information */}
+
+        <ProductView productId={productId} />
+      </Suspense>
     </HydrationBoundary>
   );
 };

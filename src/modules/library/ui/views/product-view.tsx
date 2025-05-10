@@ -64,3 +64,17 @@ export const ProductView = ({ productId }: ProductViewProps) => {
     </div>
   );
 };
+
+// ProductViewSkeleton - Placeholder skeleton used while product data is loading
+export const ProductViewSkeleton = () => {
+  return (
+    <div className="min-h-screen bg-white">
+      <nav className="p-4 bg-[#F4F4F0] w-full border-b">
+        <div className="flex items-center gap-2">
+          <ArrowLeftIcon className="size-4" />
+          <span className="font-medium text">Back to Library</span>
+        </div>
+      </nav>
+    </div>
+  );
+};
