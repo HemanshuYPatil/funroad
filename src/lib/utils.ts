@@ -6,9 +6,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs)); // Merge class values and resolve Tailwind conflicts
 }
 
-// generateTenantURL - Constructs a route path for the given tenant slug
+// generateTenantURL - Constructs a full URL or path to a tenant's site based on environment
 export function generateTenantURL(tenantSlug: string) {
-  return `/tenants/${tenantSlug}`; // Return full route to tenant page
+  // In development, return a local path using the base app URL and the tenant route
+  if (process.env.NODE_ENV === "development") {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${tenantSlug}`;
+  }
+
+  // In production, generate a subdomain-based URL (e.g., https://tenant.example.com)
+  const protocol = "https"; // Assume HTTPS in production
+
+  const domain = process.env.NEXT_PUBLIC_ROOT_DOMAIN!; // Root domain for production (e.g., example.com)
+
+  return `${protocol}://${tenantSlug}.${domain}`; // Construct full URL with subdomain
 }
 
 // formatCurrency - Formats a number or string as USD currency with no decimal places
