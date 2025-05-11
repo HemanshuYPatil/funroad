@@ -11,6 +11,9 @@ interface PageProps {
   searchParams: Promise<SearchParams>; // URL query params (minPrice, maxPrice, tags, etc.)
 }
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+
 // Page - Displays a list of products for the current tenant using filters and SSR prefetching
 const Page = async ({ params, searchParams }: PageProps) => {
   const { slug } = await params; // Extract tenant slug from dynamic route

@@ -11,6 +11,9 @@ interface PageProps {
   params: Promise<{ productId: string; slug: string }>; // Dynamic segments from the route (product ID and tenant slug)
 }
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+
 // Page - Displays detailed product view with SSR data prefetching
 const Page = async ({ params }: PageProps) => {
   const { productId, slug } = await params; // Extract product ID and tenant slug from route
