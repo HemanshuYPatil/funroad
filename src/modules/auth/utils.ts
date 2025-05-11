@@ -15,8 +15,11 @@ export const generateAuthCookie = async ({ prefix, value }: Props) => {
     value: value, // Set the value to the provided auth token
     httpOnly: true, // Make cookie inaccessible to client-side JavaScript (security best practice)
     path: "/", // Ensure the cookie is available on all routes of the site
-    sameSite: "none", // Required for cross-origin cookies when using secure (HTTPS) contexts
-    domain: process.env.NEXT_PUBLIC_ROOT_DOMAIN, // Set the domain for broader cookie scope (e.g., across subdomains)
-    secure: process.env.NODE_ENV === "production", // Only send the cookie over HTTPS in production
+    // Only set the cookie if the environment is not development
+    ...(process.env.NODE_ENV !== "development" && {
+      sameSite: "none", // Required for cross-origin cookies when using secure (HTTPS) contexts
+      domain: process.env.NEXT_PUBLIC_ROOT_DOMAIN, // Set the domain for broader cookie scope (e.g., across subdomains)
+      secure: true, // Only send the cookie over HTTPS in production
+    }),
   });
 };
