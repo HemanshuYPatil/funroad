@@ -5,6 +5,9 @@ import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { SearchParams } from "nuqs/server";
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+
 // PageProps - Defines the route and query parameters passed to the category page
 interface PageProps {
   params: Promise<{ category: string }>; // Dynamic segment from the route (category slug)
