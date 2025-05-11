@@ -1,5 +1,6 @@
 import { PLATFORM_FEE_PERCENTAGE } from "@/constants";
 import { stripe } from "@/lib/stripe";
+import { generateTenantURL } from "@/lib/utils";
 import { Media, Tenant } from "@/payload-types";
 import {
   baseProcedure,
@@ -168,12 +169,15 @@ export const checkoutRouter = createTRPCRouter({
         totalAmount * (PLATFORM_FEE_PERCENTAGE / 100)
       );
 
+      // Generate the full URL for the tenant's site
+      const domain = generateTenantURL(tenant.slug);
+
       // Create a new Stripe Checkout session using tenant's connected account
       const checkout = await stripe.checkout.sessions.create(
         {
           customer_email: ctx.session.user.email, // Send receipt to the logged-in user’s email
-          success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?success=true`, // Redirect URL on successful payment
-          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?cancel=true`, // Redirect URL if user cancels checkout
+          success_url: `${domain}/checkout?success=true`, // Redirect URL on successful payment
+          cancel_url: `${domain}/checkout?cancel=true`, // Redirect URL if user cancels checkout
           mode: "payment", // Use one-time payment mode
           line_items: lineItems, // Add all mapped line items
           invoice_creation: {

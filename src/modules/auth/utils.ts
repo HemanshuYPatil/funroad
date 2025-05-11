@@ -15,8 +15,8 @@ export const generateAuthCookie = async ({ prefix, value }: Props) => {
     value: value, // Set the value to the provided auth token
     httpOnly: true, // Make cookie inaccessible to client-side JavaScript (security best practice)
     path: "/", // Ensure the cookie is available on all routes of the site
-    // TODO: Enable the following options for cross-domain support if needed in the future
-    // sameSite: "none", // Required for cross-origin cookies when using secure (HTTPS) contexts
-    // domain: "" // Optional: Set the domain for broader cookie scope (e.g., across subdomains)
+    sameSite: "none", // Required for cross-origin cookies when using secure (HTTPS) contexts
+    domain: process.env.NEXT_PUBLIC_ROOT_DOMAIN, // Set the domain for broader cookie scope (e.g., across subdomains)
+    secure: process.env.NODE_ENV === "production", // Only send the cookie over HTTPS in production
   });
 };
