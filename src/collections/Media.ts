@@ -12,11 +12,6 @@ export const Media: CollectionConfig = {
     delete: ({ req }) => isSuperAdmin(req.user), // Allow super admins to delete
   },
 
-  // admin - Admin panel configuration
-  admin: {
-    hidden: ({ user }) => !isSuperAdmin(user), // Hide the media collection from non-super admins
-  },
-
   // fields - Defines the schema/structure of the media collection
   fields: [
     // alt - Alternative text for the media
