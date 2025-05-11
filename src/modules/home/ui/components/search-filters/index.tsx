@@ -1,6 +1,7 @@
 "use client"; // Enables client-side rendering
 
 import { DEFAULT_BG_COLOR } from "@/modules/home/constants";
+import { useProductFilters } from "@/modules/products/hooks/use-product-filters";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
@@ -12,6 +13,8 @@ import { SearchInput } from "./search-input";
 export const SearchFilters = () => {
   const trpc = useTRPC(); // Access the tRPC client
   const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions()); // Fetch category data with suspense-enabled query
+
+  const [filter, setFilter] = useProductFilters(); // Get the product filters
 
   const params = useParams(); // Get dynamic route parameters
   const categoryParam = params.category as string | undefined; // Extract current category from route
@@ -42,7 +45,10 @@ export const SearchFilters = () => {
       style={{ backgroundColor: activeCategoryColor }}
     >
       {/* Search bar input field */}
-      <SearchInput />
+      <SearchInput
+        defaultValue={filter.search}
+        onChange={(value) => setFilter({ search: value })}
+      />
 
       {/* Categories filter section (only visible on large screens) */}
       <div className="hidden lg:block">
