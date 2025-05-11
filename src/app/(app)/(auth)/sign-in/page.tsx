@@ -2,6 +2,9 @@ import { SignInView } from "@/modules/auth/ui/views/sign-in-view";
 import { caller } from "@/trpc/server";
 import { redirect } from "next/navigation";
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+
 // SignIn Page - Renders the sign-in view for existing users
 const Page = async () => {
   // Use the server-side tRPC caller to check the current session
