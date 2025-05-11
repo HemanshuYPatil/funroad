@@ -2,11 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useProductFilters } from "@/modules/products/hooks/use-product-filters";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { BookmarkCheckIcon, ListFilterIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CategoriesSidebar } from "./categories-sidebar";
 
 // SearchInputProps - Props accepted by the SearchInput component
@@ -16,10 +17,23 @@ interface SearchInputProps {
 
 // SearchInput - Input field with a search icon and mobile category toggle button
 export const SearchInput = ({ disabled }: SearchInputProps) => {
+  const [filter, setFilter] = useProductFilters(); // Get the product filters
+  const [searchValue, setSearchValue] = useState(filter.search); // Track the search value
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Track sidebar visibility
 
   const trpc = useTRPC(); // Access the tRPC client
   const session = useQuery(trpc.auth.session.queryOptions()); // Fetch the current session from the server using tRPC
+
+  // Debounce the search input to prevent excessive API calls
+  useEffect(() => {
+    // Set a timeout to delay the update of the search filter
+    const timeoutId = setTimeout(() => {
+      setFilter({ search: searchValue }); // Update the search filter with the current value
+    }, 500); // 500ms delay
+
+    // Cleanup the timeout when the component unmounts
+    return () => clearTimeout(timeoutId);
+  }, [searchValue, setFilter]); // Run the effect when searchValue changes
 
   return (
     <div className="flex items-center gap-2 w-full">
@@ -33,6 +47,8 @@ export const SearchInput = ({ disabled }: SearchInputProps) => {
           className="pl-8"
           placeholder="Search products"
           disabled={disabled}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
         />
       </div>
 
