@@ -8,8 +8,13 @@ export function cn(...inputs: ClassValue[]) {
 
 // generateTenantURL - Constructs a full URL or path to a tenant's site based on environment
 export function generateTenantURL(tenantSlug: string) {
-  // In development, return a local path using the base app URL and the tenant route
-  if (process.env.NODE_ENV === "development") {
+  // Check if the environment is development
+  const isDevelopment = process.env.NODE_ENV === "development";
+  // Check if subdomain routing is enabled
+  const isSubdomainRoutingEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_SUBDOMAIN_ROUTING === "true";
+  // If the environment is development or subdomain routing is not enabled, return a local path using the base app URL and the tenant route
+  if (isDevelopment || !isSubdomainRoutingEnabled) {
     return `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${tenantSlug}`;
   }
 
