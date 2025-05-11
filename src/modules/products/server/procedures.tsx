@@ -132,6 +132,7 @@ export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
     .input(
       z.object({
+        search: z.string().nullable().optional(), // Optional search query for filtering products
         cursor: z.number().default(1), // The page number or cursor for pagination, defaults to 1
         limit: z.number().default(DEFAULT_LIMIT), // The number of products to fetch, defaults to the defined DEFAULT_LIMIT
         category: z.string().nullable().optional(), // Optional category or subcategory slug
@@ -248,6 +249,13 @@ export const productsRouter = createTRPCRouter({
       if (input.tags && input.tags.length > 0) {
         where["tags.name"] = {
           in: input.tags, // Match any product that has one of the selected tag names
+        };
+      }
+
+      // Add search filter if a search query is provided
+      if (input.search) {
+        where["name"] = {
+          like: input.search, // Match products with names containing the search query
         };
       }
 
