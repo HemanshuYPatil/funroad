@@ -44,7 +44,15 @@ export const Users: CollectionConfig = {
     hidden: ({ user }) => !isSuperAdmin(user), // Hide the users collection from non-super admins
   },
 
-  auth: true, // Enables authentication for this collection
+  auth: {
+    cookies: {
+      ...(process.env.NODE_ENV !== "development" && {
+        sameSite: "None",
+        domain: process.env.NEXT_PUBLIC_ROOT_DOMAIN,
+        secure: true,
+      }),
+    },
+  },
 
   // fields - Defines the schema/structure of the users collection
   fields: [
