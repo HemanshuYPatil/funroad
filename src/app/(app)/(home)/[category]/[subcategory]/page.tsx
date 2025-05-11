@@ -15,6 +15,9 @@ interface PageProps {
   searchParams: Promise<SearchParams>; // URL query params (minPrice, maxPrice, etc.)
 }
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+
 // Page - Displays content based on the selected subcategory
 const Page = async ({ params, searchParams }: PageProps) => {
   const { subcategory } = await params; // Await the resolved params

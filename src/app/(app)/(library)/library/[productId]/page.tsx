@@ -6,6 +6,9 @@ import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+
 // PageProps - Expected route parameters for the product page
 interface PageProps {
   params: Promise<{

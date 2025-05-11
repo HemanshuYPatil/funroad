@@ -3,6 +3,9 @@ import { LibraryView } from "@/modules/library/ui/views/library-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+
 // Page - Displays the user's purchased product library
 const Page = async () => {
   const queryClient = getQueryClient(); // Initialize a new query client
