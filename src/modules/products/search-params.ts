@@ -10,6 +10,13 @@ export const sortValues = ["curated", "trending", "hot_and_new"] as const;
 
 // params - Configuration for parsing and validating query string parameters on the server
 const params = {
+  // search - Represents the search query parsed from the URL query string
+  search: parseAsString
+    .withOptions({
+      clearOnDefault: true, // Clears the query param if it matches the default value (empty or null)
+    })
+    .withDefault(""), // Default to an empty string if not provided in the query string
+
   // sort - Specifies the sorting order for the products, default is 'curated'
   sort: parseAsStringLiteral(sortValues).withDefault("curated"),
 
