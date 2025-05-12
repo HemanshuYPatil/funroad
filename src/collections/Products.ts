@@ -74,7 +74,6 @@ export const Products: CollectionConfig = {
       name: "image", // Field name
       type: "upload", // File upload input
       relationTo: "media", // Points to the media collection
-      hasMany: true, // Multiple images allowed
     },
 
     // refundPolicy - Enum representing refund rules for this product
