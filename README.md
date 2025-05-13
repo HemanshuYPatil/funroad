@@ -178,30 +178,35 @@ bun dev:all
 ## Screenshots of the Application
 
 <div style="display:flex; flex-wrap:wrap; justify-content:space-between;">
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-1.jpeg" alt="Screenshot 1" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-2.jpeg" alt="Screenshot 2" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-3.jpeg" alt="Screenshot 3" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-4.jpeg" alt="Screenshot 4" width="220" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-1.jpeg" alt="Screenshot 1" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-2.jpeg" alt="Screenshot 2" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-3.jpeg" alt="Screenshot 3" width="30%" style="align-self:flex-start;" />
 </div>
 
 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; margin-top:16px;">
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-5.jpeg" alt="Screenshot 5" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-6.jpeg" alt="Screenshot 6" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-7.jpeg" alt="Screenshot 7" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-8.jpeg" alt="Screenshot 8" width="220" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-4.jpeg" alt="Screenshot 4" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-5.jpeg" alt="Screenshot 5" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-6.jpeg" alt="Screenshot 6" width="30%" style="align-self:flex-start;" />
 </div>
 
 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; margin-top:16px;">
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-10.jpeg" alt="Screenshot 10" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-11.jpeg" alt="Screenshot 11" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-12.jpeg" alt="Screenshot 12" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-13.jpeg" alt="Screenshot 13" width="220" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-7.jpeg" alt="Screenshot 7" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-8.jpeg" alt="Screenshot 8" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-10.jpeg" alt="Screenshot 10" width="30%" style="align-self:flex-start;" />
 </div>
 
 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; margin-top:16px;">
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-14.jpeg" alt="Screenshot 14" width="220" style="align-self:flex-start;" />
-  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-15.jpeg" alt="Screenshot 15" width="220" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-11.jpeg" alt="Screenshot 11" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-12.jpeg" alt="Screenshot 12" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-13.jpeg" alt="Screenshot 13" width="30%" style="align-self:flex-start;" />
 </div>
+
+<div style="display:flex; flex-wrap:wrap; justify-content:space-between; margin-top:16px;">
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-14.jpeg" alt="Screenshot 14" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-15.jpeg" alt="Screenshot 15" width="30%" style="align-self:flex-start;" />
+  <img src="https://github.com/JairGuzman1810/multitenant-ecommerce/blob/master/resources/App-16.jpeg" alt="Screenshot 16" width="30%" style="align-self:flex-start;" />
+</div>
+
 
 
 
