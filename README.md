@@ -172,7 +172,7 @@ BLOB_READ_WRITE_TOKEN="your-blob-read-write-token-here"
 1. Once you've installed all dependencies and configured your environment variables, you can run the application using the following command:
 
 ```sh
-bun dev:all
+bun run dev
 ```
 
 ## Screenshots of the Application
