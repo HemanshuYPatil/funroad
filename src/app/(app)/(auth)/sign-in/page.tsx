@@ -12,7 +12,7 @@ const Page = async () => {
 
   // If user is already logged in, redirect them to the homepage
   if (session.user) {
-    redirect("/");
+    redirect("/home");
   }
 
   // Otherwise, render the sign-in UI

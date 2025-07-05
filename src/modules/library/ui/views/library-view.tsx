@@ -9,7 +9,7 @@ export const LibraryView = () => {
     <div className="min-h-screen bg-white">
       {/* Top navigation bar with back link to main shopping page */}
       <nav className="p-4 bg-[#F4F4F0] w-full border-b">
-        <Link prefetch href={"/"} className="flex items-center gap-2">
+        <Link prefetch href={"/home"} className="flex items-center gap-2">
           <ArrowLeftIcon className="size-4" />
           <span className="font-medium text">Continue shopping</span>
         </Link>

@@ -10,7 +10,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { NavbarSidebar } from "./navbar-sidebar";
-
+import { isSuperAdmin } from "@/lib/access";
 // Load the Poppins font with desired configuration
 const poppins = Poppins({
   subsets: ["latin"],
@@ -41,12 +41,12 @@ const NavbarItem = ({ href, children, isActive = false }: NavbarItemProps) => {
 };
 
 // navbarItems - List of top-level navigation links
-const navbarItems = [
-  { href: "/", children: "Home" },
-  { href: "/about", children: "About" },
-  { href: "/features", children: "Features" },
-  { href: "/pricing", children: "Pricing" },
-  { href: "/contact", children: "Contact" },
+const navbarItems: any[] = [
+  // { href: "/", children: "Home" },
+  // // { href: "/about", children: "About" },
+  // // { href: "/features", children: "Features" },
+  // // { href: "/pricing", children: "Pricing" },
+  // { href: "/contact", children: "Contact" },
 ];
 
 // Navbar - Main navigation bar for the application
@@ -55,8 +55,9 @@ export const Navbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for mobile sidebar toggle
 
   const trpc = useTRPC(); // Access the tRPC client
-  const session = useQuery(trpc.auth.session.queryOptions()); // Fetch the current session from the server using tRPC
+  const session = useQuery(trpc.auth.session.queryOptions());
 
+  console.log(session.data?.user);
   return (
     <nav className="h-20 flex justify-between border-b bg-white font-medium">
       {/* Logo/Home Link */}
@@ -89,13 +90,25 @@ export const Navbar = () => {
       {/* Auth-related buttons (visible on desktop only) */}
       {session.data?.user ? (
         // If user is authenticated, show Dashboard access
+
         <div className="hidden lg:flex">
           <Button
             asChild
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white hover:bg-pink-400 hover:text-black transition-colors text-lg"
+            variant={"secondary"}
+            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white hover:bg-pink-400 transition-colors text-lg"
           >
-            <Link href={"/admin"}>Dashboard</Link>
+            <Link prefetch href={"/account"}>
+              Account
+            </Link>
           </Button>
+          {isSuperAdmin(session.data.user) && (
+            <Button
+              asChild
+              className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white hover:bg-pink-400 hover:text-black transition-colors text-lg"
+            >
+              <Link href={"/admin"} >Dashboard</Link>
+            </Button>
+          )}
         </div>
       ) : (
         // If user is not authenticated, show Login and Register options
