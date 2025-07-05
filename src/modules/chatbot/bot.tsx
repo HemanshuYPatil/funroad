@@ -1,88 +1,171 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SupportWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      content: "hi",
-      isUser: true,
-      timestamp: "7/2/2025, 9:51:12 PM",
-      timeAgo: "32m",
-    },
-    {
-      id: 2,
-      content:
-        "Hello! How can I help you with your Gumroad account or products today?",
-      isUser: false,
-      timestamp: "7/2/2025, 9:51:13 PM",
-      timeAgo: "32m",
-    },
-    {
-      id: 3,
-      content: "hi",
-      isUser: true,
-      timestamp: "7/2/2025, 9:55:59 PM",
-      timeAgo: "27m",
-    },
-    {
-      id: 4,
-      content:
-        "Hello! How can I help you with your Gumroad account or products today?",
-      isUser: false,
-      timestamp: "7/2/2025, 9:56:00 PM",
-      timeAgo: "27m",
-    },
-    {
-      id: 5,
-      content: "dsdsdds",
-      isUser: true,
-      timestamp: "7/2/2025, 10:20:37 PM",
-      timeAgo: "2m",
-    },
-    {
-      id: 6,
-      content:
-        "It looks like your message might have been a typo. How can I assist you with Gumroad? If you have a question or need help, just let me know!",
-      isUser: false,
-      timestamp: "7/2/2025, 10:20:39 PM",
-      timeAgo: "2m",
-    },
-    {
-      id: 7,
-      content: "dsdsd",
-      isUser: true,
-      timestamp: "7/2/2025, 10:20:44 PM",
-      timeAgo: "2m",
-    },
-    {
-      id: 8,
-      content:
-        "It seems like your message might be incomplete. If you have a question or need help with something on Gumroad, please let me know how I can assist you!",
-      isUser: false,
-      timestamp: "7/2/2025, 10:20:46 PM",
-      timeAgo: "2m",
-    },
-  ]);
+  const [activeTab, setActiveTab] = useState("chat");
+  const [messages, setMessages] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
-  const handleSubmit = (e) => {
+  // Load messages and history from localStorage on component mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem("supportWidgetMessages");
+    const savedHistory = localStorage.getItem("supportWidgetHistory");
+
+    if (savedMessages) {
+      setMessages(JSON.parse(savedMessages));
+    }
+
+    if (savedHistory) {
+      setHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  // Save messages and history to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("supportWidgetMessages", JSON.stringify(messages));
+
+    // Update history with the latest conversation
+    if (messages.length > 0) {
+      const lastUserMessage = messages.filter((msg) => msg.isUser).pop();
+      if (lastUserMessage) {
+        const newHistoryItem = {
+          id: lastUserMessage.id,
+          preview:
+            lastUserMessage.content.length > 20
+              ? lastUserMessage.content.substring(0, 20) + "..."
+              : lastUserMessage.content,
+          timeAgo: lastUserMessage.timeAgo,
+          messages: messages, // Store all messages for this conversation
+        };
+
+        setHistory((prev) => {
+          const existingIndex = prev.findIndex(
+            (item) => item.id === lastUserMessage.id
+          );
+          let newHistory = [...prev];
+
+          if (existingIndex >= 0) {
+            newHistory[existingIndex] = newHistoryItem;
+          } else {
+            newHistory = [newHistoryItem, ...prev].slice(0, 50); // Keep last 50 conversations
+          }
+
+          localStorage.setItem(
+            "supportWidgetHistory",
+            JSON.stringify(newHistory)
+          );
+          return newHistory;
+        });
+      }
+    }
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        messagesContainerRef.current;
+      const isNearBottom = scrollHeight - (scrollTop + clientHeight) > 100;
+      setShowScrollButton(isNearBottom);
+    }
+  };
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (message.trim()) {
-      const now = new Date();
-      const newMessage = {
-        id: messages.length + 1,
-        content: message,
-        isUser: true,
-        timestamp: now.toLocaleString(),
-        timeAgo: "now",
-      };
-      setMessages([...messages, newMessage]);
-      setMessage("");
+    if (!message.trim() || isLoading) return;
+
+    const userMessage = {
+      id: Date.now(),
+      content: message,
+      isUser: true,
+      timestamp: new Date().toLocaleString(),
+      timeAgo: "now",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setMessage("");
+    setIsLoading(true);
+
+    try {
+      // Call OpenRouter API
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
+            "HTTP-Referer": window.location.href,
+            "X-Title": "Gumroad Support",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "deepseek/deepseek-chat-v3-0324:free",
+            messages: [
+              ...messages
+                .filter((msg) => !msg.isUser || msg.id === userMessage.id)
+                .map((msg) => ({
+                  role: msg.isUser ? "user" : "assistant",
+                  content: msg.content,
+                })),
+            ],
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("API request failed");
+
+      const data = await response.json();
+      const botMessage = data.choices[0].message.content;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          content: botMessage,
+          isUser: false,
+          timestamp: new Date().toLocaleString(),
+          timeAgo: "now",
+        },
+      ]);
+    } catch (error) {
+      console.error("Error calling OpenRouter API:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          content:
+            "Sorry, I'm having trouble connecting to the support service. Please try again later.",
+          isUser: false,
+          timestamp: new Date().toLocaleString(),
+          timeAgo: "now",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -93,153 +176,112 @@ const SupportWidget = () => {
     }
   };
 
-  // Animation variants
-  const chatVariants = {
-    hidden: { 
-      opacity: 0, 
-      scale: 0.85,
-      y: 20,
-      filter: "blur(10px)"
-    },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      y: 0,
-      filter: "blur(0px)",
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        mass: 0.8
-      }
-    },
-    exit: { 
-      opacity: 0, 
-      scale: 0.85,
-      y: 20,
-      filter: "blur(10px)",
-      transition: {
-        duration: 0.2
-      }
+  const loadConversation = (conversationId) => {
+    const conversation = history.find((item) => item.id === conversationId);
+    if (conversation) {
+      setMessages(conversation.messages);
+      setActiveTab("chat");
     }
   };
 
-  const messageVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 10,
-      scale: 0.95
+  const startNewConversation = () => {
+    setActiveTab("chat");
+  };
+
+  // Animation variants (same as before)
+  const chatVariants = {
+    hidden: { opacity: 0, scale: 0.85, y: 20, filter: "blur(10px)" },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { type: "spring", stiffness: 300, damping: 30, mass: 0.8 },
     },
-    visible: { 
-      opacity: 1, 
+    exit: {
+      opacity: 0,
+      scale: 0.85,
+      y: 20,
+      filter: "blur(10px)",
+      transition: { duration: 0.2 },
+    },
+  };
+
+  const messageVariants = {
+    hidden: { opacity: 0, y: 10, scale: 0.95 },
+    visible: {
+      opacity: 1,
       y: 0,
       scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25,
-        mass: 0.5
-      }
-    }
+      transition: { type: "spring", stiffness: 400, damping: 25, mass: 0.5 },
+    },
   };
 
   const buttonVariants = {
     rest: { scale: 1 },
-    hover: { 
+    hover: {
       scale: 1.02,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25
-      }
+      transition: { type: "spring", stiffness: 400, damping: 25 },
     },
-    tap: { 
+    tap: {
       scale: 0.98,
-      transition: {
-        type: "spring",
-        stiffness: 600,
-        damping: 25
-      }
-    }
+      transition: { type: "spring", stiffness: 600, damping: 25 },
+    },
   };
 
   const fabVariants = {
-    rest: { 
-      scale: 1,
-      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.15)"
-    },
-    hover: { 
+    rest: { scale: 1, boxShadow: "0 4px 16px rgba(0, 0, 0, 0.15)" },
+    hover: {
       scale: 1.05,
       boxShadow: "0 6px 24px rgba(0, 0, 0, 0.2)",
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25
-      }
+      transition: { type: "spring", stiffness: 400, damping: 25 },
     },
-    tap: { 
+    tap: {
       scale: 0.95,
-      transition: {
-        type: "spring",
-        stiffness: 600,
-        damping: 25
-      }
-    }
+      transition: { type: "spring", stiffness: 600, damping: 25 },
+    },
   };
 
   const iconVariants = {
     rest: { rotate: 0 },
-    hover: { 
+    hover: {
       rotate: 5,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25
-      }
-    }
+      transition: { type: "spring", stiffness: 400, damping: 25 },
+    },
   };
 
   const headerButtonVariants = {
     rest: { scale: 1, opacity: 0.7 },
-    hover: { 
-      scale: 1.1, 
+    hover: {
+      scale: 1.1,
       opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25
-      }
+      transition: { type: "spring", stiffness: 400, damping: 25 },
     },
-    tap: { 
+    tap: {
       scale: 0.95,
-      transition: {
-        type: "spring",
-        stiffness: 600,
-        damping: 25
-      }
-    }
+      transition: { type: "spring", stiffness: 600, damping: 25 },
+    },
   };
 
   const supportButtonVariants = {
     rest: { scale: 1, y: 0 },
-    hover: { 
+    hover: {
       scale: 1.03,
       y: -1,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25
-      }
+      transition: { type: "spring", stiffness: 400, damping: 25 },
     },
-    tap: { 
+    tap: {
       scale: 0.97,
       y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 600,
-        damping: 25
-      }
-    }
+      transition: { type: "spring", stiffness: 600, damping: 25 },
+    },
+  };
+
+  const scrollButtonVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 },
   };
 
   return (
@@ -247,9 +289,7 @@ const SupportWidget = () => {
       <style
         dangerouslySetInnerHTML={{
           __html: `
-          :root,
-          .light,
-          .dark {
+          :root, .light, .dark {
             --sidebar-width: 280px;
             --sidebar-width-mobile: 100%;
             --sidebar-background: #ffffff;
@@ -415,6 +455,73 @@ const SupportWidget = () => {
           .support-widget .scrollbar-webkit::-webkit-scrollbar-thumb {
             background: rgba(0,0,0,0.4);
           }
+          
+          .history-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background-color 0.2s;
+          }
+          .history-item:hover {
+            background-color: #f3f4f6;
+          }
+          .history-preview {
+            font-weight: 500;
+            margin-bottom: 2px;
+          }
+          .history-time {
+            color: #6b7280;
+            font-size: 0.75rem;
+          }
+          .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            position: relative;
+          }
+          .tab-button.active {
+            font-weight: 600;
+          }
+          .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #000;
+          }
+          .typing-indicator {
+            display: flex;
+            padding: 8px 16px;
+          }
+          .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            margin: 0 2px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1s infinite ease-in-out;
+          }
+          .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+          }
+          .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+          }
+          .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+          }
+          @keyframes typing {
+            0%, 100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-5px);
+            }
+          }
         `,
         }}
       />
@@ -431,7 +538,7 @@ const SupportWidget = () => {
             exit="exit"
           >
             {/* Header */}
-            <motion.div 
+            <motion.div
               className="flex items-start justify-between border-b border-black p-1.5"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -439,7 +546,9 @@ const SupportWidget = () => {
             >
               <div className="flex items-center h-full">
                 <div className="ml-2 flex flex-col gap-0.5">
-                  <h2 className="text-base leading-5 text-foreground">Support</h2>
+                  <h2 className="text-base leading-5 text-foreground">
+                    Support
+                  </h2>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -451,6 +560,7 @@ const SupportWidget = () => {
                   initial="rest"
                   whileHover="hover"
                   whileTap="tap"
+                  onClick={startNewConversation}
                 >
                   <svg
                     width="24"
@@ -476,34 +586,7 @@ const SupportWidget = () => {
                     ></path>
                   </svg>
                 </motion.button>
-                <motion.button
-                  className="text-primary hover:text-muted-foreground p-1 rounded-full hover:bg-muted"
-                  aria-label="Show previous conversations"
-                  data-state="closed"
-                  variants={headerButtonVariants}
-                  initial="rest"
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-history h-5 w-5"
-                    aria-hidden="true"
-                  >
-                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                    <path d="M3 3v5h5"></path>
-                    <path d="M12 7v5l4 2"></path>
-                  </svg>
-                </motion.button>
-                
+
                 <motion.button
                   className="text-primary hover:text-muted-foreground p-1 rounded-full hover:bg-muted"
                   aria-label="Close chat"
@@ -534,6 +617,22 @@ const SupportWidget = () => {
               </div>
             </motion.div>
 
+            {/* Tabs */}
+            <div className="flex border-b border-black">
+              <button
+                className={`tab-button flex-1 text-center ${activeTab === "chat" ? "active" : ""}`}
+                onClick={() => setActiveTab("chat")}
+              >
+                Chat
+              </button>
+              <button
+                className={`tab-button flex-1 text-center ${activeTab === "history" ? "active" : ""}`}
+                onClick={() => setActiveTab("history")}
+              >
+                History
+              </button>
+            </div>
+
             <div className="relative flex-1 overflow-hidden">
               <div
                 className="absolute inset-0 flex"
@@ -543,157 +642,153 @@ const SupportWidget = () => {
                   <div className="h-full overflow-y-auto p-4"></div>
                 </div>
                 <div className="shrink-0 w-full h-full flex flex-col">
-                  {/* Messages Container */}
-                  <div
-                    className="flex-1 overflow-y-auto p-4 
-      [scrollbar-color:var(--scrollbar-color,rgba(0,0,0,0.4))_transparent] 
-      [&::-webkit-scrollbar]:h-1 
-      [&::-webkit-scrollbar-thumb]:bg-[rgba(0,0,0,0.4)] 
-      dark:[&::-webkit-scrollbar-thumb]:bg-[rgba(0,0,0,0.4)] 
-      dark:[--scrollbar-color:rgba(0,0,0,0.4)]"
-                    id="message-container"
-                  >
-                    <div className="flex flex-col">   
-                      {messages.map((msg, index) => (
-                        <motion.div
-                          key={msg.id}
-                          className={`flex flex-col  ${
-                            msg.isUser ? "ml-9 items-end" : "mr-9 items-start"
-                          }`}
-                          variants={messageVariants}
-                          initial="hidden"
-                          animate="visible"
-                          transition={{ delay: index * 0.05 }}
+                  {/* History Tab Content */}
+                  {activeTab === "history" && (
+                    <div className="flex-1 overflow-y-auto">
+                      {history.map((item) => (
+                        <div
+                          key={item.id}
+                          className="history-item"
+                          onClick={() => loadConversation(item.id)}
                         >
-                          <div
-                            className={`rounded-lg max-w-full ${
-                              msg.isUser
-                                ? "bg-primary text-primary-foreground"
-                                : "border border-black bg-background text-foreground"
-                            }`}
-                          >
-                            <div className="relative p-4">
-                              <div
-                                className={`text-sm ${
-                                  msg.isUser
-                                    ? "text-primary-foreground **:text-primary-foreground"
-                                    : "text-foreground **:text-foreground"
-                                }`}
-                              >
-                                <p>{msg.content}</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="text-xs text-gray-400"
-                              title={msg.timestamp}
-                            >
-                              <span title={msg.timestamp}>{msg.timeAgo}</span>
-                            </span>
-                          </div>
-                        </motion.div>
+                          <div className="history-preview">{item.preview}</div>
+                          <div className="history-time">{item.timeAgo}</div>
+                        </div>
                       ))}
                     </div>
-                  </div>
+                  )}
 
-                  {/* Support Buttons */}
-                  <motion.div
-                    className="flex justify-center gap-4 py-3"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.4 }}
-                  >
-                    <motion.button 
-                      className="flex items-center gap-2 rounded-full border border-green-500 bg-green-100 text-green-700 px-4 py-2 text-sm transition-colors duration-200"
-                      variants={supportButtonVariants}
-                      initial="rest"
-                      whileHover="hover"
-                      whileTap="tap"
-                    >
+                  {/* Chat Tab Content */}
+                  {activeTab === "chat" && (
+                    <>
+                      {/* Messages Container */}
                       <div
-                        className="w-4 h-4 origin-bottom-left"
-                        style={{ transform: "none" }}
+                        ref={messagesContainerRef}
+                        className="flex-1 overflow-y-auto p-4 
+                        [scrollbar-color:var(--scrollbar-color,rgba(0,0,0,0.4))_transparent] 
+                        [&::-webkit-scrollbar]:h-1 
+                        [&::-webkit-scrollbar-thumb]:bg-[rgba(0,0,0,0.4)] 
+                        dark:[&::-webkit-scrollbar-thumb]:bg-[rgba(0,0,0,0.4)] 
+                        dark:[--scrollbar-color:rgba(0,0,0,0.4)]"
+                        id="message-container"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-thumbs-up h-4 w-4 text-green-600"
-                          aria-hidden="true"
-                        >
-                          <path d="M7 10v12"></path>
-                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path>
-                        </svg>
+                        <div className="flex flex-col">
+                          {messages.map((msg, index) => (
+                            <motion.div
+                              key={msg.id}
+                              className={`flex flex-col  ${
+                                msg.isUser
+                                  ? "ml-9 items-end"
+                                  : "mr-9 items-start"
+                              }`}
+                              variants={messageVariants}
+                              initial="hidden"
+                              animate="visible"
+                              transition={{ delay: index * 0.05 }}
+                            >
+                              <div
+                                className={`rounded-lg max-w-full ${
+                                  msg.isUser
+                                    ? "bg-primary text-primary-foreground"
+                                    : "border border-black bg-background text-foreground"
+                                }`}
+                              >
+                                <div className="relative p-4">
+                                  <div
+                                    className={`text-sm ${
+                                      msg.isUser
+                                        ? "text-primary-foreground **:text-primary-foreground"
+                                        : "text-foreground **:text-foreground"
+                                    }`}
+                                  >
+                                    <p>{msg.content}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="text-xs text-gray-400"
+                                  title={msg.timestamp}
+                                >
+                                  <span title={msg.timestamp}>
+                                    {msg.timeAgo}
+                                  </span>
+                                </span>
+                              </div>
+                            </motion.div>
+                          ))}
+                          {isLoading && (
+                            <motion.div
+                              className="flex flex-col mr-9 items-start"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                            >
+                              <div className="rounded-lg max-w-full border border-black bg-background text-foreground">
+                                <div className="relative p-4">
+                                  <div className="text-sm text-foreground **:text-foreground">
+                                    <div className="typing-indicator">
+                                      <span></span>
+                                      <span></span>
+                                      <span></span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                          <div ref={messagesEndRef} />
+                        </div>
                       </div>
-                      That solved it!
-                    </motion.button>
-                    <motion.button 
-                      className="flex items-center gap-2 rounded-full border border-gray-400 text-black px-4 py-2 text-sm hover:bg-gray-100 transition-colors duration-200"
-                      variants={supportButtonVariants}
-                      initial="rest"
-                      whileHover="hover"
-                      whileTap="tap"
-                    >
-                      <div
-                        className="w-4 h-4 origin-center"
-                        style={{ transform: "none" }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-messages-square h-4 w-4"
-                          aria-hidden="true"
-                        >
-                          <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"></path>
-                          <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"></path>
-                        </svg>
-                      </div>
-                      Talk to a human
-                    </motion.button>
-                  </motion.div>
 
-                  {/* Chat Input */}
-                  <motion.div 
-                    className="border-t border-black p-4 bg-white"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.3 }}
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex-1 flex items-start">
-                        <textarea
-                          className="w-full rounded-lg border-border text-sm focus:border-transparent focus:ring-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 self-stretch max-w-md placeholder:text-muted-foreground text-foreground flex-1 resize-none border-none bg-white p-0 pr-3 outline-hidden focus:border-none focus:outline-hidden focus:ring-0 min-h-[24px] max-h-[200px]"
-                          aria-label="Ask a question"
-                          placeholder="Ask a question..."
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          style={{ height: "40px" }}
-                        />
-                        <div className="flex items-center gap-2">
+                      {/* Scroll to bottom button */}
+                      <AnimatePresence>
+                        {showScrollButton && (
                           <motion.button
-                            type="button"
-                            className="text-primary hover:text-muted-foreground p-2 rounded-full hover:bg-muted"
-                            aria-label="Dictate"
-                            data-state="closed"
-                            variants={buttonVariants}
-                            initial="rest"
+                            className="absolute bottom-24 right-6 z-10 p-2 rounded-full bg-black text-white shadow-md"
+                            onClick={scrollToBottom}
+                            variants={scrollButtonVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
                             whileHover="hover"
                             whileTap="tap"
+                            aria-label="Scroll to bottom"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="lucide lucide-chevron-down"
+                            >
+                              <path d="m6 9 6 6 6-6" />
+                            </svg>
+                          </motion.button>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Support Buttons */}
+                      <motion.div
+                        className="flex justify-center gap-4 py-3"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.4 }}
+                      >
+                        <motion.button
+                          className="flex items-center gap-2 rounded-full border border-green-500 bg-green-100 text-green-700 px-4 py-2 text-sm transition-colors duration-200"
+                          variants={supportButtonVariants}
+                          initial="rest"
+                          whileHover="hover"
+                          whileTap="tap"
+                        >
+                          <div
+                            className="w-4 h-4 origin-bottom-left"
+                            style={{ transform: "none" }}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -705,47 +800,138 @@ const SupportWidget = () => {
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              className="lucide lucide-mic w-4 h-4 text-primary"
+                              className="lucide lucide-thumbs-up h-4 w-4 text-green-600"
                               aria-hidden="true"
                             >
-                              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                              <line x1="12" x2="12" y1="19" y2="22"></line>
+                              <path d="M7 10v12"></path>
+                              <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path>
                             </svg>
-                          </motion.button>
-                          <div className="relative">
-                            <motion.div
-                              variants={buttonVariants}
-                              initial="rest"
-                              whileHover="hover"
-                              whileTap="tap"
+                          </div>
+                          That solved it!
+                        </motion.button>
+                        <motion.button
+                          className="flex items-center gap-2 rounded-full border border-gray-400 text-black px-4 py-2 text-sm hover:bg-gray-100 transition-colors duration-200"
+                          variants={supportButtonVariants}
+                          initial="rest"
+                          whileHover="hover"
+                          whileTap="tap"
+                        >
+                          <div
+                            className="w-4 h-4 origin-center"
+                            style={{ transform: "none" }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="lucide lucide-messages-square h-4 w-4"
+                              aria-hidden="true"
                             >
-                              <Button
-                                onClick={handleSubmit}
-                                aria-label="Send message"
-                                className="relative z-10 hover:bg-[#FF90E8] flex h-8 w-8 items-center justify-center rounded-md bg-primary text-2xl text-primary-foreground transition-all duration-300 ease-in-out"
-                                type="submit"
-                                variant={"elevated"}
+                              <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"></path>
+                              <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"></path>
+                            </svg>
+                          </div>
+                          Talk to a human
+                        </motion.button>
+                      </motion.div>
+
+                      {/* Chat Input */}
+                      <motion.div
+                        className="border-t border-black p-4 bg-white"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.3 }}
+                      >
+                        <div className="flex flex-col gap-2">
+                          <div className="flex-1 flex items-start">
+                            <textarea
+                              className="w-full rounded-lg border-border text-sm focus:border-transparent focus:ring-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 self-stretch max-w-md placeholder:text-muted-foreground text-foreground flex-1 resize-none border-none bg-white p-0 pr-3 outline-hidden focus:border-none focus:outline-hidden focus:ring-0 min-h-[24px] max-h-[200px]"
+                              aria-label="Ask a question"
+                              placeholder="Ask a question..."
+                              value={message}
+                              onChange={(e) => setMessage(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              style={{ height: "40px" }}
+                              disabled={isLoading}
+                            />
+                            <div className="flex items-center gap-2">
+                              <motion.button
+                                type="button"
+                                className="text-primary hover:text-muted-foreground p-2 rounded-full hover:bg-muted"
+                                aria-label="Dictate"
+                                data-state="closed"
+                                variants={buttonVariants}
+                                initial="rest"
+                                whileHover="hover"
+                                whileTap="tap"
+                                disabled={isLoading}
                               >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
                                   fill="none"
-                                  viewBox="0 0 20 20"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="lucide lucide-mic w-4 h-4 text-primary"
+                                  aria-hidden="true"
                                 >
-                                  <path
-                                    d="M2.5 17.5L17.5 10L2.5 2.5V8.33333L13.3333 10L2.5 11.6667V17.5Z"
-                                    fill="currentColor"
-                                  />
+                                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                  <line x1="12" x2="12" y1="19" y2="22"></line>
                                 </svg>
-                              </Button>
-                            </motion.div>
+                              </motion.button>
+                              <div className="relative">
+                                <motion.div
+                                  variants={buttonVariants}
+                                  initial="rest"
+                                  whileHover="hover"
+                                  whileTap="tap"
+                                >
+                                  <Button
+                                    onClick={handleSubmit}
+                                    aria-label="Send message"
+                                    className="relative z-10  flex h-8 w-8 items-center justify-center rounded-md bg-primary hover:bg-[#FF90E8] text-2xl text-primary-foreground transition-all duration-300 ease-in-out"
+                                    type="submit"
+                                    variant={"elevated"}
+                                    disabled={isLoading || !message.trim()}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="lucide lucide-send h-3.5 w-3.5 -rotate-90"
+                                      aria-hidden="true"
+                                      data-sentry-element="Send"
+                                      data-sentry-source-file="ShadowHoverButton.tsx"
+                                    >
+                                      <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" />
+                                      <path d="m21.854 2.147-10.94 10.939" />
+                                    </svg>
+                                  </Button>
+                                </motion.div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </motion.div>
+                      </motion.div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
